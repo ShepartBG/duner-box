@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Duner Box — дюнер в Козлодуй</title>
+  <meta name="description" content="Duner Box — дюнери, Duner Box кутии, грил сандвичи, джобове и салати на ул. Търговска 77, Козлодуй. Работим понеделник–събота.">
+  <meta name="theme-color" content="#0b0705">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Russo+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ SVG ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="g-silver" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#e4e4e4"/><stop offset=".56" stop-color="#bdbdbd"/><stop offset="1" stop-color="#f2f2f2"/>
+    </linearGradient>
+
+    <!-- Doner spit icon (inside the logo "O") -->
+    <symbol id="logo-o" viewBox="0 0 64 72">
+      <rect x="2" y="2" width="60" height="68" rx="14" fill="url(#g-silver)"/>
+      <g fill="none" stroke="#120a07" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M32 7v58"/>
+        <path d="M20 15h24"/>
+        <path d="M21 17 L43 17 L39 53 L25 53 Z"/>
+        <path d="M23 26 q9 3 18 0 M24 35 q8 3 16 0 M25 44 q7 2.6 14 0"/>
+        <path d="M24 59h16"/>
+      </g>
+    </symbol>
+
+    <!-- Takeout doner box -->
+    <symbol id="ill-box" viewBox="0 0 220 210">
+      <path d="M44 92 L22 40 L82 62 Z" fill="#fff7e6" stroke="#1a0f0a" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M176 92 L198 40 L138 62 Z" fill="#fff7e6" stroke="#1a0f0a" stroke-width="5" stroke-linejoin="round"/>
+      <g stroke="#1a0f0a" stroke-width="4" stroke-linejoin="round">
+        <rect x="58" y="44" width="12" height="60" rx="3" fill="#ffc93c" transform="rotate(-16 64 74)"/>
+        <rect x="76" y="34" width="12" height="68" rx="3" fill="#ffd864" transform="rotate(-6 82 68)"/>
+        <rect x="134" y="36" width="12" height="66" rx="3" fill="#ffc93c" transform="rotate(10 140 69)"/>
+        <rect x="150" y="48" width="12" height="54" rx="3" fill="#ffd864" transform="rotate(20 156 75)"/>
+        <path d="M80 96 q4 -30 26 -34 q16 -4 22 10 q18 -6 20 12 q8 4 4 14 Z" fill="#9a4a1c"/>
+        <path d="M94 74 l12 -4 M112 70 l12 2 M124 84 l12 -2 M98 88 l14 -2" stroke="#e39150" stroke-width="4" stroke-linecap="round" fill="none"/>
+      </g>
+      <path d="M88 76 q12 8 24 0 q12 -6 24 4" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M40 94 L180 94 L166 196 L54 196 Z" fill="#ffc21a" stroke="#1a0f0a" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M40 94 L180 94 L177 112 L43 112 Z" fill="#f0a800" stroke="#1a0f0a" stroke-width="5" stroke-linejoin="round"/>
+      <rect x="52" y="128" width="116" height="40" rx="8" fill="#d62b12" stroke="#1a0f0a" stroke-width="4" transform="rotate(-6 110 148)"/>
+      <text x="110" y="155" text-anchor="middle" font-family="'Russo One', sans-serif" font-size="17" fill="#fff" transform="rotate(-6 110 148)">DÖNER BOX</text>
+    </symbol>
+
+    <!-- Doner wrap -->
+    <symbol id="ill-wrap" viewBox="0 0 200 220">
+      <path d="M52 80 Q56 22 100 18 Q144 22 148 80 Z" fill="#e7b066" stroke="#1a0f0a" stroke-width="5" stroke-linejoin="round"/>
+      <g stroke="#1a0f0a" stroke-width="4" stroke-linejoin="round">
+        <path d="M58 72 q10 -26 26 -22 q8 -18 26 -10 q18 -6 24 14 q12 4 8 18 Z" fill="#9a4a1c"/>
+        <circle cx="80" cy="56" r="9" fill="#e8402a"/>
+        <circle cx="122" cy="52" r="8" fill="#e8402a"/>
+        <path d="M94 46 q8 -12 20 -4 q-6 12 -20 4 Z" fill="#5fae3e"/>
+      </g>
+      <path d="M64 64 q14 8 28 0 q14 -8 28 0 q10 6 18 0" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M46 78 L154 78 L132 206 L68 206 Z" fill="#fff7e6" stroke="#1a0f0a" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M50 100 L150 100 M56 128 L144 128" stroke="#d62b12" stroke-width="5"/>
+      <path d="M100 78 L100 206" stroke="#1a0f0a" stroke-width="3" stroke-dasharray="6 7" opacity=".35"/>
+    </symbol>
+
+    <!-- Grill sandwich -->
+    <symbol id="ill-sandwich" viewBox="0 0 240 170">
+      <g stroke="#1a0f0a" stroke-width="5" stroke-linejoin="round">
+        <path d="M18 116 Q20 146 60 150 L184 150 Q222 146 222 116 Z" fill="#d9954a"/>
+        <path d="M22 112 q12 -12 24 0 q12 -12 24 0 q12 -12 24 0 q12 -12 24 0 q12 -12 24 0 q12 -12 24 0 q12 -12 24 0 q12 -12 24 0 v8 H22 Z" fill="#5fae3e"/>
+        <path d="M26 100 h188 v14 H26 Z" fill="#e8402a"/>
+        <path d="M30 88 L210 88 L222 100 L18 100 Z" fill="#ffc93c"/>
+        <path d="M24 88 Q26 30 120 26 Q214 30 216 88 Z" fill="#e7a352"/>
+      </g>
+      <g stroke="#7a3c12" stroke-width="7" stroke-linecap="round" opacity=".75">
+        <path d="M70 46 L56 76"/><path d="M110 40 L96 76"/><path d="M150 40 L136 76"/><path d="M188 48 L174 78"/>
+      </g>
+      <g fill="#fff6e0" opacity=".9"><ellipse cx="90" cy="38" rx="4" ry="2"/><ellipse cx="132" cy="34" rx="4" ry="2"/><ellipse cx="166" cy="42" rx="4" ry="2"/></g>
+    </symbol>
+
+    <!-- Pocket (меча лапа джоб) -->
+    <symbol id="ill-pocket" viewBox="0 0 220 190">
+      <g stroke="#1a0f0a" stroke-width="5" stroke-linejoin="round">
+        <path d="M34 92 q14 -30 40 -24 q10 -24 36 -18 q26 -8 36 18 q28 -4 40 24 Z" fill="#5fae3e"/>
+        <circle cx="76" cy="72" r="11" fill="#e8402a"/>
+        <circle cx="146" cy="70" r="10" fill="#e8402a"/>
+        <path d="M96 66 q14 -14 32 -2 q-10 12 -32 2 Z" fill="#9a4a1c"/>
+        <path d="M24 92 L196 92 Q196 176 110 178 Q24 176 24 92 Z" fill="#e2a457"/>
+        <path d="M24 92 L196 92 Q190 110 110 112 Q30 110 24 92 Z" fill="#f2c27d"/>
+      </g>
+      <g fill="#b56d2c" opacity=".6"><circle cx="70" cy="138" r="5"/><circle cx="110" cy="150" r="5"/><circle cx="150" cy="136" r="5"/><circle cx="90" cy="160" r="4"/><circle cx="132" cy="162" r="4"/></g>
+    </symbol>
+
+    <!-- Salad container -->
+    <symbol id="ill-salad" viewBox="0 0 220 180">
+      <g stroke="#1a0f0a" stroke-width="4" stroke-linejoin="round">
+        <path d="M36 82 q8 -30 34 -24 q14 -26 42 -14 q26 -14 40 12 q30 -2 32 26 Z" fill="#5fae3e"/>
+        <path d="M60 70 q10 -16 28 -6 q-8 14 -28 6 Z" fill="#8fd16b"/>
+        <circle cx="132" cy="58" r="10" fill="#e8402a"/>
+        <circle cx="90" cy="52" r="8" fill="#e8402a"/>
+        <path d="M108 70 q6 -18 24 -14 q4 12 -4 18 Z" fill="#9a4a1c"/>
+        <circle cx="156" cy="72" r="7" fill="#d8f0c0"/>
+      </g>
+      <path d="M26 82 L194 82 L178 166 Q110 176 42 166 Z" fill="rgba(255,255,255,.75)" stroke="#1a0f0a" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M40 96 L180 96" stroke="#1a0f0a" stroke-width="3" opacity=".25"/>
+      <g stroke="#1a0f0a" stroke-width="3"><path d="M54 112 q10 -10 20 0 q10 10 20 0" fill="none" stroke="#3f8f3a" stroke-width="6"/><circle cx="130" cy="118" r="9" fill="#e8402a"/><circle cx="156" cy="130" r="7" fill="#d8f0c0"/><path d="M76 138 q16 -6 30 2" stroke="#9a4a1c" stroke-width="7" fill="none" stroke-linecap="round"/></g>
+    </symbol>
+
+    <!-- Fries -->
+    <symbol id="ill-fries" viewBox="0 0 200 200">
+      <g stroke="#1a0f0a" stroke-width="4" stroke-linejoin="round">
+        <rect x="56" y="30" width="14" height="90" rx="3" fill="#ffc93c" transform="rotate(-12 63 75)"/>
+        <rect x="78" y="18" width="14" height="100" rx="3" fill="#ffd864" transform="rotate(-4 85 68)"/>
+        <rect x="100" y="14" width="14" height="104" rx="3" fill="#ffc93c" transform="rotate(4 107 66)"/>
+        <rect x="122" y="22" width="14" height="96" rx="3" fill="#ffd864" transform="rotate(12 129 70)"/>
+      </g>
+      <path d="M44 90 L156 90 L140 190 L60 190 Z" fill="#d62b12" stroke="#1a0f0a" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M44 90 Q100 120 156 90" fill="none" stroke="#1a0f0a" stroke-width="5"/>
+      <circle cx="100" cy="148" r="16" fill="#ffc21a" stroke="#1a0f0a" stroke-width="4"/>
+    </symbol>
+
+    <!-- Rotating spit -->
+    <symbol id="ill-spit" viewBox="0 0 200 240">
+      <rect x="96" y="6" width="8" height="226" rx="3" fill="#cfcfcf" stroke="#1a0f0a" stroke-width="2"/>
+      <ellipse cx="100" cy="30" rx="44" ry="10" fill="#9a9a9a" stroke="#1a0f0a" stroke-width="5"/>
+      <path d="M58 34 Q100 46 142 34 L128 194 Q100 204 72 194 Z" fill="#a8521f" stroke="#1a0f0a" stroke-width="5" stroke-linejoin="round"/>
+      <g stroke="#e8964f" stroke-width="5" stroke-linecap="round" fill="none">
+        <path d="M66 62 q34 10 70 0"/><path d="M68 92 q32 10 64 0"/><path d="M71 122 q29 9 58 0"/><path d="M73 152 q27 8 54 0"/><path d="M75 180 q25 7 50 0"/>
+      </g>
+      <path d="M120 50 L116 186" stroke="#5e2408" stroke-width="6" stroke-linecap="round" opacity=".55"/>
+      <ellipse cx="100" cy="206" rx="40" ry="9" fill="#9a9a9a" stroke="#1a0f0a" stroke-width="5"/>
+    </symbol>
+
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.6 7-12a7 7 0 1 0-14 0c0 5.4 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="10" r="2.6" fill="currentColor"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3-1-3 0-6 1-9.5z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#main">Към съдържанието</a>
+
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <div class="wrap topbar__in">
+    <span class="topbar__tag"><svg class="ico"><use href="#i-flame"/></svg> Шишът се върти от сутринта</span>
+    <span class="status" data-status><span class="status__dot"></span><span data-status-text>Работно време</span></span>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="top">
+  <div class="wrap header__in">
+    <a class="logo" href="#top" aria-label="Duner Box — начало">
+      <span class="logo__word" aria-hidden="true">DUNER&nbsp;B<svg class="logo__o"><use href="#logo-o"/></svg>X</span>
+    </a>
+    <nav class="nav" id="nav" aria-label="Основна навигация">
+      <a href="#hits">Хитове</a>
+      <a href="#menu">Меню</a>
+      <a href="#about">За нас</a>
+      <a href="#hours">Работно време</a>
+      <a href="#visit">Контакти</a>
+      <a class="btn btn--fire nav__cta" href="https://www.google.com/maps/dir/?api=1&amp;destination=DUNER+BOX%2C+Kozloduy%2C+Bulgaria" target="_blank" rel="noopener">Как да стигна <svg class="ico"><use href="#i-arrow"/></svg></a>
+    </nav>
+    <button class="burger" type="button" aria-label="Отвори менюто" aria-expanded="false" aria-controls="nav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="facts">
+    <div class="wrap facts__in">
+      <span><b>4</b> размера дюнер</span>
+      <span><b>6</b> грил сандвича</span>
+      <span><b>9</b> вида джоб</span>
+      <span><b>Търговска 77</b></span>
+      <span><b>Козлодуй</b></span>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============ HERO ============ -->
+<section class="hero" aria-labelledby="hero-title">
+  <canvas class="embers" data-embers aria-hidden="true"></canvas>
+  <div class="wrap hero__in">
+    <div class="hero__copy">
+      <p class="eyebrow">Козлодуй · ул. Търговска 77</p>
+      <h1 id="hero-title" class="hero__title"><span class="gold">Горещо</span><br><span class="gold">от шиша.</span><br><span class="silver">Право в кутия.</span></h1>
+      <p class="hero__lead">Дюнери, Duner Box, грил сандвичи и джобове с меча лапа. Щедри порции, пресни зеленчуци и чеснов сос, който се помни.</p>
+      <div class="hero__ctas">
+        <a class="btn btn--fire btn--lg" href="#menu">Виж менюто <svg class="ico"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn--ghost btn--lg" href="#visit">Къде сме</a>
+      </div>
+    </div>
+    <div class="hero__art" aria-hidden="true">
+      <div class="hero__glow"></div>
+      <div class="hero__ring"></div>
+      <svg class="hero__spit"><use href="#ill-spit"/></svg>
+      <svg class="hero__box"><use href="#ill-box"/></svg>
+      <svg class="hero__wrap"><use href="#ill-wrap"/></svg>
+      <span class="sticker sticker--hero" data-sticker>Кралски<br>дюнер<b>5,11 €</b></span>
+    </div>
+  </div>
+  <div class="flames" data-flames aria-hidden="true"></div>
+</section>
+
+<!-- ============ MARQUEE ============ -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee__track">
+    <span>Дюнери</span><i>◆</i><span>Duner Box</span><i>◆</i><span>Грил сандвичи</span><i>◆</i><span>Джобове</span><i>◆</i><span>Салати</span><i>◆</i><span>Пържени картофи</span><i>◆</i>
+    <span>Дюнери</span><i>◆</i><span>Duner Box</span><i>◆</i><span>Грил сандвичи</span><i>◆</i><span>Джобове</span><i>◆</i><span>Салати</span><i>◆</i><span>Пържени картофи</span><i>◆</i>
+  </div>
+</div>
+
+<!-- ============ HITS ============ -->
+<section class="section" id="hits" aria-labelledby="hits-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Най-поръчвани</p>
+      <h2 id="hits-title" class="sec-title"><span class="gold">Топ 3</span> <span class="silver">на квартала</span></h2>
+    </div>
+    <div class="hits" data-hits></div>
+  </div>
+</section>
+
+<!-- ============ PROMO ============ -->
+<section class="promo" aria-labelledby="promo-title">
+  <div class="wrap promo__in">
+    <div class="promo__art" aria-hidden="true">
+      <div class="promo__glow"></div>
+      <svg><use href="#ill-box"/></svg>
+      <span class="sticker sticker--promo">Нашият<br>подпис</span>
+    </div>
+    <div class="promo__copy">
+      <p class="eyebrow">Името ни задължава</p>
+      <h2 id="promo-title" class="sec-title"><span class="silver">Duner</span> <span class="gold">Box</span></h2>
+      <p>Дюнер месо от шиша и хрупкави пържени картофи, събрани в кутия. Без питка, без излишни приказки, само вкусното. Удобно е за из път, за вкъщи и за офиса.</p>
+      <div class="promo__prices" data-promo-prices></div>
+      <a class="btn btn--fire" href="#menu" data-filter-link="box">Към кутиите <svg class="ico"><use href="#i-arrow"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MENU ============ -->
+<section class="section section--menu" id="menu" aria-labelledby="menu-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Цялото меню</p>
+      <h2 id="menu-title" class="sec-title"><span class="silver">Избери си</span> <span class="gold">вкуса</span></h2>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Категории" data-tabs></div>
+    <div class="boards" data-menu></div>
+    <p class="menu-note">Цените са в евро. Под всяка цена е стойността в лева по фиксирания курс 1,95583.</p>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section class="section" id="about" aria-labelledby="about-title">
+  <div class="wrap about">
+    <figure class="about__photo">
+      <img src="assets/storefront.jpg" alt="Барът на Duner Box на ул. Търговска 77 с дървени столчета и логото на заведението" width="1536" height="2048" loading="lazy">
+      <figcaption>ул. Търговска 77, Козлодуй</figcaption>
+    </figure>
+    <div class="about__copy">
+      <p class="eyebrow">Кои сме ние</p>
+      <h2 id="about-title" class="sec-title"><span class="silver">Малко място.</span><br><span class="gold">Голям огън.</span></h2>
+      <p>Duner Box е квартално място за бърза и честна храна в сърцето на Козлодуй. Ще ни познаеш по дървения бар, високите столчета и голямото лого с шиша.</p>
+      <p>Месото се върти на шиша от сутринта и се реже чак когато поръчаш. Сандвичите влизат в грила горещи, джобовете се пълнят щедро, а чесновият сос е по наша рецепта. Хапни на бара или го вземи за из път.</p>
+      <p class="sig">— екипът на Duner Box</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STEPS ============ -->
+<section class="steps-sec" aria-labelledby="steps-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Как става</p>
+      <h2 id="steps-title" class="sec-title"><span class="silver">От шиша</span> <span class="gold">до ръцете ти</span></h2>
+    </div>
+    <ol class="steps">
+      <li class="step"><span class="step__n">01</span><h3>Избираш</h3><p>Дюнер, кутия, грил сандвич, джоб или салата. Малък или голям.</p></li>
+      <li class="step"><span class="step__n">02</span><h3>Приготвяме</h3><p>Месото се реже от шиша, а сандвичите отиват в грила. Всичко е горещо.</p></li>
+      <li class="step"><span class="step__n">03</span><h3>Хапваш</h3><p>На бара, по пътя или вкъщи. Готово е за няколко минути.</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ HOURS + VISIT ============ -->
+<section class="section" id="visit" aria-labelledby="visit-title">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Ела да хапнеш</p>
+      <h2 id="visit-title" class="sec-title"><span class="silver">Къде да ни</span> <span class="gold">намериш</span></h2>
+    </div>
+    <div class="visit">
+      <div class="card visit__info">
+        <div class="visit__row">
+          <svg class="ico ico--lg"><use href="#i-pin"/></svg>
+          <div>
+            <h3>Адрес</h3>
+            <address>ул. Търговска 77<br>3320 Козлодуй, България</address>
+          </div>
+        </div>
+        <div class="visit__row" id="hours">
+          <svg class="ico ico--lg"><use href="#i-clock"/></svg>
+          <div class="grow">
+            <h3>Работно време</h3>
+            <table class="hours" data-hours>
+              <tbody>
+                <tr data-day="1"><th scope="row">Понеделник</th><td>8:30 – 19:00</td></tr>
+                <tr data-day="2"><th scope="row">Вторник</th><td>8:30 – 19:00</td></tr>
+                <tr data-day="3"><th scope="row">Сряда</th><td>8:30 – 19:00</td></tr>
+                <tr data-day="4"><th scope="row">Четвъртък</th><td>8:30 – 19:00</td></tr>
+                <tr data-day="5"><th scope="row">Петък</th><td>8:30 – 19:00</td></tr>
+                <tr data-day="6"><th scope="row">Събота</th><td>10:00 – 18:00</td></tr>
+                <tr data-day="0" class="closed"><th scope="row">Неделя</th><td>Затворено</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="visit__btns">
+          <a class="btn btn--fire" href="https://www.google.com/maps/dir/?api=1&amp;destination=DUNER+BOX%2C+Kozloduy%2C+Bulgaria" target="_blank" rel="noopener" data-directions>Упътване <svg class="ico"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn--ghost" href="https://www.google.com/maps/search/?api=1&amp;query=DUNER+BOX%2C+Kozloduy%2C+Bulgaria" target="_blank" rel="noopener">Отвори в Google Maps</a>
+        </div>
+      </div>
+      <div class="card visit__map">
+        <span class="visit__map-fallback"><svg class="ico ico--lg"><use href="#i-pin"/></svg>ул. Търговска 77, Козлодуй</span>
+        <iframe title="Карта: Duner Box, ул. Търговска 77, Козлодуй" src="https://www.google.com/maps?q=DUNER+BOX%2C+Kozloduy%2C+Bulgaria&amp;z=16&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLOSING CTA ============ -->
+<section class="cta" aria-labelledby="cta-title">
+  <div class="flames flames--cta" data-flames aria-hidden="true"></div>
+  <div class="wrap cta__in">
+    <h2 id="cta-title" class="cta__title"><span class="gold">Коремът къркори?</span></h2>
+    <p>Шишът вече се върти. Ела, а за останалото ще се погрижим ние.</p>
+    <a class="btn btn--fire btn--lg" href="#visit">Идвам <svg class="ico"><use href="#i-arrow"/></svg></a>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="wrap footer__in">
+    <div class="footer__brand">
+      <a class="logo" href="#top" aria-label="Duner Box — към началото">
+        <span class="logo__word" aria-hidden="true">DUNER&nbsp;B<svg class="logo__o"><use href="#logo-o"/></svg>X</span>
+      </a>
+      <p>Дюнери, кутии, грил сандвичи и джобове в Козлодуй. Горещо, щедро и бързо.</p>
+    </div>
+    <nav class="footer__nav" aria-label="Навигация във футъра">
+      <h3>Навигация</h3>
+      <a href="#hits">Хитове</a>
+      <a href="#menu">Меню</a>
+      <a href="#about">За нас</a>
+      <a href="#hours">Работно време</a>
+      <a href="#visit">Контакти</a>
+    </nav>
+    <div class="footer__contact">
+      <h3>Контакти</h3>
+      <p>ул. Търговска 77<br>3320 Козлодуй</p>
+      <p>Пон–Пет: 8:30 – 19:00<br>Съб: 10:00 – 18:00<br>Нед: затворено</p>
+    </div>
+  </div>
+  <div class="wrap footer__bottom">
+    <span>© <span data-year>2026</span> Duner Box. Всички права запазени.</span>
+    <a href="#top" class="totop">Нагоре ↑</a>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
