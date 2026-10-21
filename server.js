@@ -9,6 +9,9 @@ const ROOT = __dirname;
 const PORT = Number(process.env.PORT) || 5173;
 const DEV = process.argv.includes('--dev');
 const IGNORED = /node_modules|tests|test-results|screenshots|playwright-report|\.git/;
+// тези папки не се сервират като статични файлове
+const PRIVATE = /^(api|photos|node_modules|tests|test-results|screenshots|playwright-report|\.git)([\\/]|$)/;
+const orderApi = require('./api/order.js');
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml',
@@ -45,8 +48,10 @@ http.createServer((req, res) => {
     return;
   }
 
+  if (url === '/api/order') return orderApi(req, res);
+
   const file = path.normalize(path.join(ROOT, url === '/' ? 'index.html' : url));
-  if (!file.startsWith(ROOT) || IGNORED.test(path.relative(ROOT, file))) {
+  if (!file.startsWith(ROOT) || PRIVATE.test(path.relative(ROOT, file))) {
     res.writeHead(403); return res.end('Forbidden');
   }
   fs.readFile(file, (err, data) => {

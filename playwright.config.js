@@ -15,7 +15,7 @@ module.exports = defineConfig({
   ],
   webServer: {
     command: 'node server.js',
-    env: { PORT: '5174' },
+    env: { PORT: '5174', ALLOW_TEST_CLOCK: '1' },
     url: 'http://localhost:5174',
     reuseExistingServer: true,
   },
