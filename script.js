@@ -8,7 +8,7 @@ const eur = (n) => `${n.toFixed(2).replace('.', ',')} €`;
 const fmtTime = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
 const catOf = (id) => CATEGORIES.find((c) => c.id === id);
 const itemOf = (id) => MENU.find((m) => m.id === id);
-const thumbOf = (m) => m.img || catOf(m.cat).img;
+const thumbOf = (m) => `items/${m.id}`;
 const priceHtml = (p) => (p == null ? '<span class="soon">цена скоро</span>' : eur(p));
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -92,7 +92,7 @@ function row(m, c) {
   const multi = m.prices.length > 1;
   return `
     <div class="row${multi ? ' row--multi' : ''}" data-item="${m.id}" data-cat="${m.cat}">
-      ${c.compact ? '' : `<img class="row__img" src="${IMG(thumbOf(m))}" alt="" loading="lazy" width="56" height="56">`}
+      <img class="row__img" src="${IMG(thumbOf(m))}" alt="" loading="lazy" width="56" height="56">
       <div class="row__name">
         <h4>${m.name}${m.tag ? `<span class="row__tag">${m.tag}</span>` : ''}</h4>
         ${m.desc ? `<p>${m.desc}</p>` : ''}

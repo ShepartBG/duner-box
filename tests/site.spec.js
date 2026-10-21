@@ -326,3 +326,21 @@ test.describe('мобилна навигация', () => {
     }
   });
 });
+
+test('всяка позиция в менюто има собствена, уникална снимка', async ({ page }) => {
+  await page.goto('/');
+  const rows = page.locator('[data-menu] .row');
+  const n = await rows.count();
+  expect(n).toBe(31);
+  const srcs = [];
+  for (let i = 0; i < n; i++) {
+    const id = await rows.nth(i).getAttribute('data-item');
+    const src = await rows.nth(i).locator('.row__img').getAttribute('src');
+    expect(src, id).toBe(`assets/img/items/${id}.webp`);
+    expect((await page.request.get('/' + src)).status(), src).toBe(200);
+    srcs.push(src);
+  }
+  expect(new Set(srcs).size).toBe(n);
+  const shop = await page.$$eval('[data-product] .product__img', (imgs) => imgs.map((i) => i.getAttribute('src')));
+  expect(new Set(shop).size).toBe(31);
+});

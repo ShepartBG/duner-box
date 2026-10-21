@@ -3,24 +3,25 @@
  * Този файл се ползва и от сайта (браузъра), и от сървъра за поръчки (api/order.js),
  * така че цените са на едно място. Редактирай тук.
  *
+ * Снимка: assets/img/items/<id>.webp — по една за всяка позиция.
  * price: цена в евро; null = „цена скоро“ (позицията се показва, а при поръчка
  *        цената се уточнява при доставката).
  */
 (function (root) {
   const CATEGORIES = [
-    { id: 'duner', label: 'Дюнери', img: 't-duner',
+    { id: 'duner', label: 'Дюнери',
       note: 'Дюнер месо от шиша, пресни зеленчуци и чеснов сос. Избери си размера.' },
-    { id: 'box', label: 'Duner Box', img: 't-box',
+    { id: 'box', label: 'Duner Box',
       note: 'Дюнер месо, картофки, салата и сосове, натъпкани в кутия.' },
-    { id: 'sandwich', label: 'Грил сандвичи', img: 't-pita', wide: true,
+    { id: 'sandwich', label: 'Грил сандвичи', wide: true,
       sub: 'малък 330 гр. · голям 480 гр.', sizes: ['малък', 'голям'] },
-    { id: 'pocket', label: 'Джоб', img: 't-pocket', sub: '600 гр.' },
-    { id: 'burger', label: 'Бургери', img: 't-burger' },
-    { id: 'salad', label: 'Салати', img: 't-salad' },
-    { id: 'sides', label: 'Гарнитури', img: 't-fries', sub: 'по 100 гр.' },
-    { id: 'extras', label: 'Добавки', img: 't-bacon', compact: true,
+    { id: 'pocket', label: 'Джоб', sub: '600 гр.' },
+    { id: 'burger', label: 'Бургери' },
+    { id: 'salad', label: 'Салати' },
+    { id: 'sides', label: 'Гарнитури', sub: 'по 100 гр.' },
+    { id: 'extras', label: 'Добавки', compact: true,
       note: 'Сложи отгоре на каквото си избрал. Цените са на бара.' },
-    { id: 'drinks', label: 'Напитки', img: 't-cola',
+    { id: 'drinks', label: 'Напитки',
       note: 'Студени, направо от хладилника. Цените са на бара.' },
   ];
 
@@ -76,9 +77,9 @@
       desc: 'Риба тон, чеснов сос, зеле, краставица, домат, зелена салата. 400 гр.' },
 
     // Гарнитури — по 100 гр.
-    { id: 'side-fries', cat: 'sides', name: 'Картофки', desc: '100 гр.', prices: [2.5], img: 't-fries' },
-    { id: 'side-rice', cat: 'sides', name: 'Ориз', desc: '100 гр.', prices: [2.0], img: 't-rice' },
-    { id: 'side-meat', cat: 'sides', name: 'Месо', desc: '100 гр. дюнер месо', prices: [3.0], img: 't-donermeat' },
+    { id: 'side-fries', cat: 'sides', name: 'Картофки', desc: '100 гр.', prices: [2.5] },
+    { id: 'side-rice', cat: 'sides', name: 'Ориз', desc: '100 гр.', prices: [2.0] },
+    { id: 'side-meat', cat: 'sides', name: 'Месо', desc: '100 гр. дюнер месо', prices: [3.0] },
 
     // Добавки — цените предстоят
     { id: 'extra-kofte', cat: 'extras', name: 'Телешко кюфте', prices: [null] },
@@ -88,10 +89,10 @@
     { id: 'extra-melted', cat: 'extras', name: 'Топено сирене', prices: [null] },
 
     // Напитки — цените предстоят
-    { id: 'drink-cola', cat: 'drinks', name: 'Coca-Cola', prices: [null], img: 't-cola' },
-    { id: 'drink-zero', cat: 'drinks', name: 'Coca-Cola Zero', prices: [null], img: 't-zero' },
-    { id: 'drink-tea', cat: 'drinks', name: 'Студен чай', prices: [null], img: 't-tea' },
-    { id: 'drink-water', cat: 'drinks', name: 'Вода', prices: [null], img: 't-water' },
+    { id: 'drink-cola', cat: 'drinks', name: 'Coca-Cola', prices: [null] },
+    { id: 'drink-zero', cat: 'drinks', name: 'Coca-Cola Zero', prices: [null] },
+    { id: 'drink-tea', cat: 'drinks', name: 'Студен чай', prices: [null] },
+    { id: 'drink-water', cat: 'drinks', name: 'Вода', prices: [null] },
   ];
 
   /* Работно време на обекта: 0 = неделя ... 6 = събота; [отваря, затваря] в минути */
