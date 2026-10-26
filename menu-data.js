@@ -6,6 +6,7 @@
  * Снимка: assets/img/items/<id>.webp — по една за всяка позиция.
  * prices:  цени в евро; null = „цена скоро“ (при поръчка цената се уточнява при доставката).
  *          Няколко цени = няколко размера; имената им са в labels (или sizes на категорията).
+ * cutout:  снимката е изрязан продукт с прозрачен фон (показва се цял, със сияние).
  * flavors: списък с вкусове на една и съща цена — клиентът избира един при поръчка.
  */
 (function (root) {
@@ -38,7 +39,7 @@
     // Duner Box
     { id: 'box-small', cat: 'box', name: 'Duner Box малък', prices: [5.0],
       desc: 'Дюнер месо, картофки, салата и сосове в кутия.' },
-    { id: 'box-large', cat: 'box', name: 'Duner Box голям', tag: 'Подпис', prices: [6.0],
+    { id: 'box-large', cutout: true, cat: 'box', name: 'Duner Box голям', tag: 'Подпис', prices: [6.0],
       desc: 'Същото, но по-голямо. Защото малкото никога не стига.',
       hit: 2, badge: 'Нашият подпис', photo: 'box' },
 
@@ -98,26 +99,26 @@
     // Напитки
     { id: 'drink-cola', cat: 'drinks', name: 'Coca-Cola', desc: 'Кен.', prices: [1.5] },
     { id: 'drink-zero', cat: 'drinks', name: 'Coca-Cola Zero', desc: 'Кен.', prices: [1.5] },
-    { id: 'drink-tea', cat: 'drinks', name: 'Студен чай Nestea', prices: [1.5],
+    { id: 'drink-tea', cutout: true, cat: 'drinks', name: 'Студен чай Nestea', prices: [1.5],
       flavors: ['лимон', 'праскова', 'манго', 'горски плодове'] },
     { id: 'drink-fizzy', cat: 'drinks', name: 'Физи', prices: [1.5],
       flavors: ['ягода и ябълка', 'ананас и манго', 'тути фрути', 'портокал и манго'] },
-    { id: 'drink-queens', cat: 'drinks', name: 'Куинс', prices: [1.5],
+    { id: 'drink-queens', cutout: true, cat: 'drinks', name: 'Куинс', prices: [1.5],
       flavors: ['кайсия', 'портокал', 'банан', 'праскова', 'ябълка', 'банан и ягода', 'малина', 'манго', 'боровинка', 'къпина', 'драконов плод'] },
-    { id: 'drink-drvit', cat: 'drinks', name: 'Др. Вит', prices: [1.5],
+    { id: 'drink-drvit', cutout: true, cat: 'drinks', name: 'Др. Вит', prices: [1.5],
       flavors: ['ягода', 'нар и асаи', 'черна боровинка и хибискус', 'праскова'] },
-    { id: 'drink-hiho', cat: 'drinks', name: 'Хихо', prices: [1.5],
+    { id: 'drink-hiho', cutout: true, cat: 'drinks', name: 'Хихо', prices: [1.5],
       flavors: ['праскова', 'тути фрути', 'ягода', 'круша', 'боровинка'] },
-    { id: 'drink-hell', cat: 'drinks', name: 'Хел', desc: 'Енергийна напитка.', prices: [1.5],
+    { id: 'drink-hell', cutout: true, cat: 'drinks', name: 'Хел', desc: 'Енергийна напитка.', prices: [1.5],
       flavors: ['класик', 'зеро', 'ябълка', 'зелена ябълка', 'диня', 'червено грозде', 'черна череша', 'розова гуава'] },
     { id: 'drink-icecoffee', cat: 'drinks', name: 'Айс кафе', prices: [1.5],
       flavors: ['Pink Latte', 'капучино', 'лате', 'двойно еспресо'] },
-    { id: 'drink-isosport', cat: 'drinks', name: 'Изо спорт', prices: [1.5] },
-    { id: 'drink-ayran', cat: 'drinks', name: 'Айрян Мегле', prices: [1.5] },
-    { id: 'drink-velingrad', cat: 'drinks', name: 'Велинград', desc: 'Минерална вода.', prices: [0.5, 1.0], labels: ['0,5 л', '1,5 л'] },
-    { id: 'drink-velingrad-flavor', cat: 'drinks', name: 'Велинград с вкус', desc: '0,5 л.', prices: [1.5],
+    { id: 'drink-isosport', cutout: true, cat: 'drinks', name: 'Изо спорт', prices: [1.5] },
+    { id: 'drink-ayran', cutout: true, cat: 'drinks', name: 'Айрян Мегле', prices: [1.5] },
+    { id: 'drink-velingrad', cutout: true, cat: 'drinks', name: 'Велинград', desc: 'Минерална вода.', prices: [0.5, 1.0], labels: ['0,5 л', '1,5 л'] },
+    { id: 'drink-velingrad-flavor', cutout: true, cat: 'drinks', name: 'Велинград с вкус', desc: '0,5 л.', prices: [1.5],
       flavors: ['праскова', 'ягода', 'лимон'] },
-    { id: 'drink-water', cat: 'drinks', name: 'Горна баня', desc: 'Минерална вода.', prices: [0.5, 1.0], labels: ['0,5 л', '1,5 л'] },
+    { id: 'drink-water', cutout: true, cat: 'drinks', name: 'Горна баня', desc: 'Минерална вода.', prices: [0.5, 1.0], labels: ['0,5 л', '1,5 л'] },
   ];
 
   /* Работно време на обекта: 0 = неделя ... 6 = събота; [отваря, затваря] в минути */

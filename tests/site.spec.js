@@ -32,7 +32,7 @@ test.describe('Duner Box', () => {
     await page.waitForLoadState('load');
     expect(failed, failed.join('\n')).toEqual([]);
     expect(errors.filter((e) => !/google|maps|fonts/i.test(e)), errors.join('\n')).toEqual([]);
-    for (const p of ['/styles.css', '/script.js', '/menu-data.js', '/assets/favicon.svg', '/assets/storefront.jpg', '/assets/img/spit.webp', '/assets/img/banner.webp']) {
+    for (const p of ['/styles.css', '/script.js', '/menu-data.js', '/assets/favicon.svg', '/assets/storefront.jpg', '/assets/img/spit2.webp', '/assets/img/banner.webp']) {
       const r = await page.request.get(p);
       expect(r.status(), p).toBe(200);
     }

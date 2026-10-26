@@ -9,7 +9,7 @@
   <!-- Адрес на API за поръчки. Празно = /api/order на същия сайт. -->
   <meta name="order-api" content="">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" as="image" href="assets/img/spit.webp">
+  <link rel="preload" as="image" href="assets/img/spit2.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Russo+One&display=swap" rel="stylesheet">
@@ -31,13 +31,6 @@
         <path d="M23 26 q9 3 18 0 M24 35 q8 3 16 0 M25 44 q7 2.6 14 0"/><path d="M24 59h16"/>
       </g>
     </symbol>
-    <!-- Ефект „горещ въздух“ над шиша -->
-    <filter id="heat" x="-5%" y="-5%" width="110%" height="110%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.06" numOctaves="2" seed="3" result="noise">
-        <animate attributeName="baseFrequency" dur="6s" values="0.012 0.06;0.016 0.09;0.012 0.06" repeatCount="indefinite"/>
-      </feTurbulence>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="9" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.6 7-12a7 7 0 1 0-14 0c0 5.4 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="10" r="2.6" fill="currentColor"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
@@ -112,8 +105,9 @@
         <div class="spit__glow"></div>
         <div class="spit__fire" data-flames data-flames-count="16"></div>
         <div class="spit__frame">
-          <img class="spit__img" src="assets/img/spit.webp" alt="" width="900" height="1350">
+          <img class="spit__img" src="assets/img/spit2.webp" alt="" width="900" height="1822">
           <div class="spit__heat"></div>
+          <div class="spit__shine"></div>
         </div>
         <div class="spit__fire spit__fire--front" data-flames data-flames-count="12"></div>
       </div>

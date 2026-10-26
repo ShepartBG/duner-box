@@ -101,17 +101,17 @@ p{margin:0 0 1em}
 @keyframes breathe{50%{transform:scale(1.06);opacity:.85}}
 @keyframes bob{50%{transform:translateY(-12px) rotate(-2deg)}}
 /* Шишът в огнена арка */
-.spit{position:absolute;left:4%;top:0;width:62%;height:92%}
+.spit{position:absolute;left:2%;top:0;width:62%;height:97%}
 .spit__glow{position:absolute;inset:-18% -30% -6%;background:radial-gradient(ellipse 55% 55% at 50% 60%,rgba(255,120,20,.65),rgba(255,60,10,.2) 45%,transparent 70%);animation:breathe 2.6s ease-in-out infinite}
 .spit__frame{position:absolute;inset:0;border-radius:999px 999px 26px 26px;overflow:hidden;border:3px solid var(--gold);box-shadow:0 0 0 6px rgba(0,0,0,.7),0 0 50px rgba(255,120,20,.65),0 0 120px rgba(255,80,10,.35),inset 0 -60px 80px rgba(255,90,10,.45);animation:frameGlow 2.2s ease-in-out infinite alternate}
 @keyframes frameGlow{to{box-shadow:0 0 0 6px rgba(0,0,0,.7),0 0 70px rgba(255,150,30,.85),0 0 160px rgba(255,80,10,.5),inset 0 -80px 100px rgba(255,110,10,.55)}}
-.spit__img{width:100%;height:100%;object-fit:cover;object-position:50% 40%;filter:url(#heat) saturate(1.15) contrast(1.05);transform:scale(1.06)}
-.spit__heat{position:absolute;inset:0;background:linear-gradient(0deg,rgba(255,110,20,.55),rgba(255,110,20,0) 45%),radial-gradient(ellipse 80% 40% at 50% 100%,rgba(255,200,80,.45),transparent 70%);mix-blend-mode:screen;animation:heatPulse 1.6s ease-in-out infinite alternate}
+.spit__img{width:100%;height:100%;object-fit:cover;object-position:46% 18%;filter:saturate(1.12) contrast(1.06)}
+.spit__heat{position:absolute;inset:0;background:linear-gradient(0deg,rgba(255,110,20,.5),rgba(255,110,20,0) 32%),radial-gradient(ellipse 80% 40% at 50% 100%,rgba(255,200,80,.45),transparent 70%);mix-blend-mode:screen;animation:heatPulse 1.6s ease-in-out infinite alternate}
 @keyframes heatPulse{to{opacity:.65}}
 .spit__fire{position:absolute;left:-22%;right:-22%;bottom:-6%;height:46%;pointer-events:none;z-index:0}
 .spit__fire--front{z-index:2;height:30%;bottom:-8%;left:-10%;right:-10%;opacity:.95}
 .spit__fire .flame{bottom:-20px}
-.hero__box{position:absolute;width:56%;height:auto;right:-4%;bottom:2%;z-index:3;animation:bob 4s ease-in-out infinite;filter:drop-shadow(0 22px 30px rgba(0,0,0,.75)) drop-shadow(0 0 30px rgba(255,120,20,.35))}
+.hero__box{position:absolute;width:46%;height:auto;right:-3%;bottom:-1%;z-index:3;animation:bob 4s ease-in-out infinite;filter:drop-shadow(0 22px 30px rgba(0,0,0,.75)) drop-shadow(0 0 30px rgba(255,120,20,.35))}
 .sticker{position:absolute;font-family:var(--font-d);text-transform:uppercase;text-align:center;line-height:1.05;color:#2a1200;background:radial-gradient(circle at 35% 30%,var(--gold-l),var(--gold) 55%,var(--gold-d));border-radius:50%;display:grid;place-content:center;box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 0 4px rgba(0,0,0,.6),0 0 30px rgba(255,160,20,.4)}
 .sticker b{display:block;font-weight:400;font-size:1.3em;color:var(--fire-d);margin-top:4px}
 .sticker--hero{right:2%;top:2%;width:124px;height:124px;font-size:.92rem;transform:rotate(12deg);z-index:4}
@@ -539,7 +539,7 @@ p{margin:0 0 1em}
   .footer__bottom{flex-direction:column;align-items:flex-start;gap:8px}
 }
 
-@media (prefers-reduced-motion:reduce){.spit__img{filter:saturate(1.15) contrast(1.05)}}
+
 
 .hit[data-hit="sand-royal"] .hit__media img{object-position:50% 12%}
 .product__img,.row__img{background:radial-gradient(circle at 50% 75%,rgba(255,120,30,.45),transparent 70%),#1f1009}
@@ -550,3 +550,22 @@ p{margin:0 0 1em}
 .flavor select{width:100%;font:inherit;font-size:16px;color:var(--text);background:rgba(0,0,0,.45);border:1px solid var(--line2);border-radius:10px;padding:8px 10px;cursor:pointer}
 .flavor select:focus{outline:none;border-color:var(--gold)}
 @media (max-width:600px){.flavor select{font-size:16px;padding:7px 8px}}
+
+/* Изрязани продукти (прозрачен фон) */
+.product__img.is-cutout,.row__img.is-cutout{object-fit:contain;background:radial-gradient(circle at 50% 62%,rgba(255,130,30,.55),rgba(255,70,10,.12) 52%,transparent 72%),linear-gradient(180deg,#1d0f08,#2b1207)}
+.product__img.is-cutout{padding:10px 0 6px;transition:transform .4s var(--ease)}
+.product:hover .product__img.is-cutout{transform:scale(1.05) rotate(-2deg)}
+.row__img.is-cutout{padding:3px}
+
+/* „Въртене“ на шиша: светла ивица минава през месото */
+.spit__shine{position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,220,160,.0) 38%,rgba(255,230,180,.38) 47%,rgba(255,200,120,.12) 55%,transparent 64%);background-size:260% 100%;mix-blend-mode:screen;animation:spitSpin 3.2s linear infinite;pointer-events:none}
+@keyframes spitSpin{from{background-position:130% 0}to{background-position:-30% 0}}
+.spit__frame::before{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit;box-shadow:inset 0 0 40px rgba(0,0,0,.55);pointer-events:none}
+
+/* Огнен пръстен около шиша */
+@property --fa{syntax:'<angle>';inherits:false;initial-value:0deg}
+.spit::before,.spit::after{content:"";position:absolute;inset:-6px;border-radius:999px 999px 30px 30px;background:conic-gradient(from var(--fa),#ff3b0a,#ffc21a,#fff3b0,#ff7a1a,#d62b12,#ffc21a,#ff3b0a);animation:fireRing 2.6s linear infinite;pointer-events:none}
+.spit::after{inset:-14px;filter:blur(22px);opacity:.75}
+.spit__frame{z-index:1;border-color:rgba(0,0,0,.65)}
+.spit__fire--front{z-index:3}
+@keyframes fireRing{to{--fa:360deg}}

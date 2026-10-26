@@ -92,7 +92,7 @@ function row(m, c) {
   const multi = m.prices.length > 1;
   return `
     <div class="row${multi ? ' row--multi' : ''}" data-item="${m.id}" data-cat="${m.cat}">
-      <img class="row__img" src="${IMG(thumbOf(m))}" alt="" loading="lazy" width="56" height="56">
+      <img class="row__img${m.cutout ? ' is-cutout' : ''}" src="${IMG(thumbOf(m))}" alt="" loading="lazy" width="56" height="56">
       <div class="row__name">
         <h4>${m.name}${m.tag ? `<span class="row__tag">${m.tag}</span>` : ''}</h4>
         ${m.desc ? `<p>${m.desc}</p>` : ''}
@@ -152,7 +152,7 @@ function renderShop() {
     const multi = m.prices.length > 1;
     return `
     <article class="product" data-product="${m.id}" data-cat="${m.cat}">
-      <img class="product__img" src="${IMG(thumbOf(m))}" alt="" loading="lazy" width="320" height="320">
+      <img class="product__img${m.cutout ? ' is-cutout' : ''}" src="${IMG(thumbOf(m))}" alt="" loading="lazy" width="320" height="320">
       <div class="product__body">
         <h4>${m.name}</h4>
         ${m.desc ? `<p>${m.desc}</p>` : ''}
