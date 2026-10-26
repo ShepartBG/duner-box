@@ -368,3 +368,38 @@ test('всяка позиция в менюто има собствена, ун�
   const shop = await page.$$eval('[data-product] .product__img', (imgs) => imgs.map((i) => i.getAttribute('src')));
   expect(new Set(shop).size).toBe(47);
 });
+
+test.describe('лого и връщане най-горе', () => {
+  test('клик на логото: храни излитат, страницата отива най-горе, адресът е без #', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('#nav a[href="#visit"]').evaluate((a) => a.click());
+    await expect(page).toHaveURL(/#visit$/);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(1000);
+    await page.locator('header .logo').click();
+    await expect.poll(() => page.locator('.food').count()).toBeGreaterThan(10);
+    await expect(page.locator('header .logo')).toHaveClass(/is-pop/);
+    await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 }).toBe(0);
+    expect(new URL(page.url()).hash).toBe('');
+    await expect.poll(() => page.locator('.food').count(), { timeout: 4000 }).toBe(0); // почистват се
+  });
+
+  test('логото във футъра също връща най-горе', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('footer .logo').scrollIntoViewIfNeeded();
+    await page.locator('footer .logo').click();
+    await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 }).toBe(0);
+  });
+
+  test('при презареждане страницата винаги започва отгоре', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => window.scrollTo(0, 3000));
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  });
+
+  test('адрес с #котва отваря страницата отгоре и чисти адреса', async ({ page }) => {
+    await page.goto('/#menu');
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    expect(new URL(page.url()).hash).toBe('');
+  });
+});

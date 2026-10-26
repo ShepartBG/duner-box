@@ -617,6 +617,62 @@ function initReveal() {
   els.forEach((e) => io.observe(e));
 }
 
+/* --- Лого: експлозия от храна + най-горе --- */
+const FOODS = ['🥙', '🌯', '🍟', '🍔', '🧀', '🥓', '🍅', '🥤', '🔥', '🌶️'];
+function foodBurst(el, n = 26) {
+  if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r = el.getBoundingClientRect();
+  const cx = r.left + r.width * 0.62;
+  const cy = r.top + r.height / 2;
+  const parts = Array.from({ length: n }, () => {
+    const s = document.createElement('span');
+    s.className = 'food';
+    s.textContent = FOODS[Math.floor(Math.random() * FOODS.length)];
+    s.style.fontSize = `${22 + Math.random() * 24}px`;
+    document.body.appendChild(s);
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.5; // ветрило нагоре и встрани
+    const v = 5 + Math.random() * 8;
+    return { s, x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1, rot: Math.random() * 360, vr: (Math.random() - 0.5) * 22 };
+  });
+  const t0 = performance.now();
+  const step = (t) => {
+    const k = (t - t0) / 1700;
+    for (const p of parts) {
+      p.vy += 0.36; p.vx *= 0.985; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      p.s.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%) rotate(${p.rot}deg) scale(${1 - k * 0.3})`;
+      p.s.style.opacity = String(Math.max(0, 1 - Math.max(0, k - 0.55) / 0.45));
+    }
+    if (k < 1) requestAnimationFrame(step);
+    else parts.forEach((p) => p.s.remove());
+  };
+  requestAnimationFrame(step);
+}
+
+function goTop() {
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+  window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+
+function initLogo() {
+  $$('.logo').forEach((logo) => {
+    logo.addEventListener('click', (e) => {
+      e.preventDefault();
+      foodBurst(logo);
+      logo.classList.remove('is-pop');
+      void logo.offsetWidth;
+      logo.classList.add('is-pop');
+      goTop();
+    });
+    logo.addEventListener('animationend', () => logo.classList.remove('is-pop'));
+  });
+}
+
+/* При презареждане — винаги най-горе, без #котва в адреса */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+window.scrollTo(0, 0);
+window.addEventListener('pageshow', (e) => { if (e.persisted) window.scrollTo(0, 0); });
+
 /* ---------- Старт ---------- */
 renderHits();
 renderPromo();
@@ -628,6 +684,7 @@ initForm();
 tickTimer();
 setInterval(tickTimer, 1000);
 initNav();
+initLogo();
 initStatus();
 initFlames();
 initEmbers();

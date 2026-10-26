@@ -569,3 +569,12 @@ p{margin:0 0 1em}
 .spit__frame{z-index:1;border-color:rgba(0,0,0,.65)}
 .spit__fire--front{z-index:3}
 @keyframes fireRing{to{--fa:360deg}}
+
+/* Лого: пулс + завъртане на шиша, летящи храни */
+.logo.is-pop .logo__word{animation:logoPop .7s var(--ease)}
+.logo.is-pop .logo__o{animation:spitTwirl .8s cubic-bezier(.3,1.4,.5,1)}
+@keyframes logoPop{30%{transform:scale(1.14) rotate(-3deg)}60%{transform:scale(.96) rotate(1deg)}}
+@keyframes spitTwirl{to{transform:translateY(-.02em) rotate(360deg)}}
+.logo:hover .logo__o{animation:spitWiggle .6s ease-in-out}
+@keyframes spitWiggle{30%{transform:translateY(-.02em) rotate(-14deg)}70%{transform:translateY(-.02em) rotate(10deg)}}
+.food{position:fixed;left:0;top:0;z-index:120;pointer-events:none;line-height:1;will-change:transform,opacity;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
