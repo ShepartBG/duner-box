@@ -1,6 +1,7 @@
 // Минимален статичен сървър:
 //   npm start    -> node server.js        (само сървър)
 //   npm run dev  -> node server.js --dev  (сървър + автоматично презареждане при промяна)
+require('./load-env.js');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -10,7 +11,7 @@ const PORT = Number(process.env.PORT) || 5173;
 const DEV = process.argv.includes('--dev');
 const IGNORED = /node_modules|tests|test-results|screenshots|playwright-report|\.git/;
 // тези папки не се сервират като статични файлове
-const PRIVATE = /^(api|photos|node_modules|tests|test-results|screenshots|playwright-report|\.git)([\\/]|$)/;
+const PRIVATE = /^(api|scripts|\.env[^\\/]*|photos|node_modules|tests|test-results|screenshots|playwright-report|\.git)([\\/]|$)/;
 const orderApi = require('./api/order.js');
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',

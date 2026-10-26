@@ -147,3 +147,18 @@ test('ограничава прекалено много поръчки от е�
   expect(statuses.slice(0, 6).every((s) => s === 200)).toBe(true);
   expect(statuses[7]).toBe(429);
 });
+
+test('тестовият сървър никога не праща истински имейли', async ({ request }) => {
+  // playwright.config.js задава празен RESEND_API_KEY за сървъра на тестовете
+  const r = await request.post('/api/order', {
+    headers: { 'x-test-now': '2026-10-12T09:30:00+03:00' },
+    data: good({ email: 'nobody@example.com' }),
+  });
+  expect((await r.json()).dryRun).toBe(true);
+});
+
+test('.env и скриптовете не се сервират', async ({ request }) => {
+  for (const p of ['/.env', '/.env.example', '/scripts/test-email.js']) {
+    expect((await request.get(p)).status(), p).toBe(403);
+  }
+});

@@ -6,7 +6,8 @@
     "dev": "node server.js --dev",
     "start": "node server.js",
     "test": "playwright test",
-    "screenshots": "playwright test tests/screenshots.spec.js"
+    "screenshots": "playwright test tests/screenshots.spec.js",
+    "test-email": "node scripts/test-email.js"
   },
   "keywords": [],
   "author": "",

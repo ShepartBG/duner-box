@@ -15,7 +15,8 @@ module.exports = defineConfig({
   ],
   webServer: {
     command: 'node server.js',
-    env: { PORT: '5174', ALLOW_TEST_CLOCK: '1' },
+    // RESEND_API_KEY празен: тестовете никога не пращат истински имейли, дори ако .env има ключ
+    env: { PORT: '5174', ALLOW_TEST_CLOCK: '1', RESEND_API_KEY: '' },
     url: 'http://localhost:5174',
     reuseExistingServer: true,
   },
