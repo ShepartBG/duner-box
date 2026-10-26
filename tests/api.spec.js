@@ -1,6 +1,7 @@
 // Тестове на сървърната логика за поръчки (без браузър, с фалшив Resend)
 const { test, expect } = require('@playwright/test');
 const { handleOrder } = require('../api/order.js');
+const D = require('../menu-data.js');
 
 test.beforeEach(({}, testInfo) => { test.skip(testInfo.project.name !== 'desktop', 'еднократно, не зависи от устройството'); });
 
@@ -213,4 +214,24 @@ test('цената на добавките се смята на сървъра',
   expect(r.status).toBe(200);
   expect(r.json.total).toBe(24); // 3 × (4 + 2 + 1 + 1)
   expect(sent[0].body.html).toContain('без съставки · без сос · + телешко кюфте, + чедър, + яйце');
+});
+
+test('Netlify: тестовият часовник работи само с ALLOW_TEST_CLOCK=1', async () => {
+  const { handler } = require('../netlify/functions/order.js');
+  const saved = { k: process.env.RESEND_API_KEY, c: process.env.ALLOW_TEST_CLOCK };
+  process.env.RESEND_API_KEY = '';
+  const ev = { httpMethod: 'POST', headers: { 'x-test-now': '2026-10-12T09:30:00+03:00', 'x-nf-client-connection-ip': '8.8.4.4' }, body: JSON.stringify(good()) };
+  try {
+    delete process.env.ALLOW_TEST_CLOCK;
+    const real = D.orderWindow().open;
+    const r1 = await handler(ev);
+    expect(r1.statusCode).toBe(real ? 200 : 403); // продукция: решава истинският час
+    process.env.ALLOW_TEST_CLOCK = '1';
+    const r2 = await handler(ev);
+    expect(r2.statusCode).toBe(200);
+    expect(JSON.parse(r2.body).dryRun).toBe(true);
+  } finally {
+    process.env.RESEND_API_KEY = saved.k;
+    if (saved.c === undefined) delete process.env.ALLOW_TEST_CLOCK; else process.env.ALLOW_TEST_CLOCK = saved.c;
+  }
 });

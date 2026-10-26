@@ -23,6 +23,10 @@ exports.handler = async (event) => {
   }
 
   const ip = event.headers['x-nf-client-connection-ip'] || String(event.headers['x-forwarded-for'] || '').split(',')[0].trim();
-  const result = await handleOrder(body, { now: new Date(), env: process.env, ip });
+  // Тестов часовник: само ако ALLOW_TEST_CLOCK=1 (зададено единствено за deploy-preview, никога за продукция)
+  let now = new Date();
+  const fake = event.headers['x-test-now'];
+  if (process.env.ALLOW_TEST_CLOCK === '1' && fake && !Number.isNaN(Date.parse(fake))) now = new Date(fake);
+  const result = await handleOrder(body, { now, env: process.env, ip });
   return json(result.status, result.json);
 };

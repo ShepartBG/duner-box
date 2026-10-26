@@ -30,10 +30,10 @@ const { handleOrder } = require('../api/order.js');
     name: 'ТЕСТ Тестов', phone: '0888 123 456', email: customer, consent: true,
     notes: 'ТЕСТОВА ПОРЪЧКА — моля, игнорирайте. Сграда 2, без лук.',
     items: [
-      { id: 'duner-royal', size: 0, qty: 1 },
-      { id: 'sand-tarikatski', size: 1, qty: 2 },
+      { id: 'duner-royal', size: 0, qty: 1, opts: { ingredients: ['зеле', 'краставица', 'домат', 'маруля', 'лук пържен', 'картофи', 'месо', 'кисела краставичка'], sauces: ['чеснов', 'люто'], extras: ['extra-bacon'] } },
+      { id: 'sand-tarikatski', size: 1, qty: 2, opts: { ingredients: ['зеле', 'домат'], sauces: ['самурай'], extras: ['extra-kofte'] } },
+      { id: 'side-fries', size: 0, qty: 1, opts: { sauces: ['кетчуп', 'шарена сол'] } },
       { id: 'drink-queens', size: 0, flavor: 'манго', qty: 1 },
-      { id: 'extra-bacon', size: 0, qty: 1 },
     ],
   }, { now, env });
 
