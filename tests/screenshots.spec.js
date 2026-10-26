@@ -37,10 +37,13 @@ test('screenshots: отворени поръчки с пълна количка'
   await page.clock.setFixedTime(new Date('2026-10-12T09:41:00+03:00'));
   await page.goto('/');
   await prep(page);
-  await page.locator('[data-product="duner-royal"] [data-add]').click();
-  await page.locator('[data-product="duner-royal"] [data-add]').click();
-  await page.locator('#shop-tab-box').click();
-  await page.locator('[data-product="box-large"] [data-add]').click();
+  for (const [id, cat] of [['duner-royal', 'duner'], ['box-large', 'box']]) {
+    await page.locator(`#shop-tab-${cat}`).click();
+    await page.locator(`[data-product="${id}"] [data-add]`).click();
+    await page.locator('[data-b-all]').click();
+    await page.locator('label.opt:has(input[value="чеснов"])').click();
+    await page.locator('[data-b-add]').click();
+  }
   await page.locator('#shop-tab-drinks').click();
   await page.locator('[data-product="drink-queens"] [data-add]').click();
   await page.fill('#f-name', 'Иван Петров');

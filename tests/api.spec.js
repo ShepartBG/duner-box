@@ -10,7 +10,12 @@ const SAT = new Date('2026-10-17T09:30:00+03:00');    // събота 9:30
 
 const good = (over = {}) => ({
   name: 'Мария Иванова', phone: '+359 888 123 456', email: 'maria@example.com', notes: 'Корпус 3', consent: true,
-  items: [{ id: 'sand-tarikatski', size: 1, qty: 2 }, { id: 'side-fries', size: 0, qty: 1 }, { id: 'extra-egg', size: 0, qty: 1 }, { id: 'drink-hell', size: 0, flavor: 'черна череша', qty: 2 }],
+  items: [
+    { id: 'sand-tarikatski', size: 1, qty: 2, opts: { ingredients: ['зеле', 'домат'], sauces: ['чеснов'], extras: ['extra-kofte'] } },
+    { id: 'side-fries', size: 0, qty: 1, opts: { sauces: ['кетчуп'] } },
+    { id: 'extra-egg', size: 0, qty: 1 },
+    { id: 'drink-hell', size: 0, flavor: 'черна череша', qty: 2 },
+  ],
   ...over,
 });
 
@@ -32,7 +37,7 @@ test('изпраща 2 имейла: към собственика и към к�
   const r = await handleOrder(good(), { now: OPEN, env: ENV, fetchImpl, ip: '1.1.1.1' });
   expect(r.status).toBe(200);
   expect(r.json.ok).toBe(true);
-  expect(r.json.total).toBe(17.5); // 2 × 6,00 + 2,50 + 2 × 1,50; яйцето е без цена
+  expect(r.json.total).toBe(22.5); // 2 × (6 + 2 кюфте) + 2,50 + 1 яйце + 2 × 1,50
   expect(sent).toHaveLength(2);
   expect(sent.every((s) => s.url === 'https://api.resend.com/emails' && s.auth === 'Bearer re_test')).toBe(true);
 
@@ -41,7 +46,7 @@ test('изпраща 2 имейла: към собственика и към к�
   expect(owner.reply_to).toBe('maria@example.com');
   expect(owner.from).toBe('Duner Box <poruchki@dunerbox.bg>');
   expect(owner.subject).toContain('Нова поръчка');
-  expect(owner.subject).toContain('17,50 €');
+  expect(owner.subject).toContain('22,50 €');
   expect(owner.html).toContain('2 × Хел');
   expect(owner.html).toContain('черна череша');
   expect(owner.html).toContain('Мария Иванова');
@@ -49,7 +54,9 @@ test('изпраща 2 имейла: към собственика и към к�
   expect(owner.html).toContain('Корпус 3');
   expect(owner.html).toContain('2 × Тарикатски');
   expect(owner.html).toContain('голям');
-  expect(owner.html).toContain('цена при доставка');
+  expect(owner.html).toContain('с зеле, домат · сосове: чеснов · + телешко кюфте');
+  expect(owner.html).toContain('сосове: кетчуп');
+  expect(owner.text).toContain('[с зеле, домат · сосове: чеснов · + телешко кюфте]');
 
   expect(cust.to).toEqual(['maria@example.com']);
   expect(cust.subject).toContain('е приета');
@@ -93,6 +100,12 @@ test('отказва празна количка, непознати позиц�
     [{ id: 'duner-small', size: 0, qty: 99 }],
     [{ id: 'drink-hell', size: 0, qty: 1 }],
     [{ id: 'drink-hell', size: 0, flavor: 'бира', qty: 1 }],
+    [{ id: 'duner-small', size: 0, qty: 1, opts: { ingredients: ['пица'] } }],
+    [{ id: 'duner-small', size: 0, qty: 1, opts: { sauces: ['люто', 'люто'] } }],
+    [{ id: 'duner-small', size: 0, qty: 1, opts: { extras: ['drink-cola'] } }],
+    [{ id: 'side-fries', size: 0, qty: 1, opts: { ingredients: ['зеле'] } }],
+    [{ id: 'drink-cola', size: 0, qty: 1, opts: { sauces: ['люто'] } }],
+    [{ id: 'duner-small', size: 0, qty: 1, opts: { ingredients: 'зеле' } }],
   ];
   for (const [i, items] of cases.entries()) {
     const { fetchImpl } = fakeResend();
@@ -190,4 +203,14 @@ test('имейлите съдържат данните на фирмата', asy
     expect(m.html).toContain('Станислав Стоянов-94 ЕООД');
     expect(m.html).toContain('ЕИК 206587193');
   }
+});
+
+test('цената на добавките се смята на сървъра', async () => {
+  const { sent, fetchImpl } = fakeResend();
+  const r = await handleOrder(good({ items: [
+    { id: 'duner-small', size: 0, qty: 3, price: 0.01, opts: { ingredients: [], sauces: [], extras: ['extra-kofte', 'extra-egg', 'extra-cheddar'] } },
+  ] }), { now: OPEN, env: ENV, fetchImpl, ip: '4.4.4.4' });
+  expect(r.status).toBe(200);
+  expect(r.json.total).toBe(24); // 3 × (4 + 2 + 1 + 1)
+  expect(sent[0].body.html).toContain('без съставки · без сос · + телешко кюфте, + чедър, + яйце');
 });

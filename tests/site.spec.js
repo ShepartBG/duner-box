@@ -202,6 +202,8 @@ test.describe('Duner Box', () => {
     await expect(hits.locator('h3')).toHaveText(['Дюнер кралски', 'Duner Box голям', 'Роял']);
     await expect(hits.locator('.price')).toHaveText(['8,00 €', '6,00 €', 'от 4,50 €']);
     await hits.nth(1).locator('[data-add]').click();
+    await expect(page.locator('[data-builder]')).toBeVisible();
+    await page.locator('[data-b-add]').click();
     await expect(page.locator('[data-cart-list] .cart__line')).toHaveCount(1);
     await expect(page.locator('[data-cart-total]')).toHaveText('6,00 €');
   });
@@ -263,13 +265,16 @@ test.describe('Duner Box', () => {
     await expect(page.locator('[data-board="sandwich"] .board__sub')).toHaveText('малък 330 гр. · голям 480 гр.');
   });
 
-  test('меню: всички добавки са изписани, без цена засега', async ({ page }) => {
+  test('меню: всички добавки са изписани с цени', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('[data-board="extras"] h4')).toHaveText([
       'Телешко кюфте', 'Бекон', 'Луканка', 'Шунка', 'Кашкавал', 'Чедър', 'Топено сирене', 'Яйце', 'Питка', 'Ориз', 'Картофи']);
-    await expect(page.locator('[data-board="extras"] .soon')).toHaveCount(11);
-    await expect(page.locator('[data-item="extra-kofte"]')).toContainText('150 гр.');
-    await expect(page.locator('[data-item="extra-pita"]')).toContainText('1 бр.');
+    await expect(page.locator('[data-board="extras"] .soon')).toHaveCount(0);
+    await expect(page.locator('[data-item="extra-kofte"]')).toContainText('2,00 €');
+    for (const id of ['extra-bacon', 'extra-lukanka', 'extra-ham', 'extra-cheese', 'extra-cheddar', 'extra-melted', 'extra-egg', 'extra-pita', 'extra-rice', 'extra-fries']) {
+      await expect(page.locator(`[data-item="${id}"]`)).toContainText('1,00 €');
+    }
+    await expect(page.locator('[data-board="extras"]')).not.toContainText('гр.');
     await expect(page.locator('[data-board="sides"] h4')).toHaveText(['Картофки', 'Ориз', 'Допълнително месо']);
   });
 
@@ -366,7 +371,7 @@ test('всяка позиция в менюто има собствена, ун�
   }
   expect(new Set(srcs).size).toBe(n);
   const shop = await page.$$eval('[data-product] .product__img', (imgs) => imgs.map((i) => i.getAttribute('src')));
-  expect(new Set(shop).size).toBe(47);
+  expect(new Set(shop).size).toBe(36); // добавките не са в магазина, а в прозореца
 });
 
 test.describe('лого и връщане най-горе', () => {

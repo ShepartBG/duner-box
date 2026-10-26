@@ -8,21 +8,24 @@
  *          Няколко цени = няколко размера; имената им са в labels (или sizes на категорията).
  * cutout:  снимката е изрязан продукт с прозрачен фон (показва се цял, със сияние).
  * flavors: списък с вкусове на една и съща цена — клиентът избира един при поръчка.
+ * options (на категория): какво клиентът си избира при поръчка — 'ingredients' (безплатни съставки),
+ *          'sauces' (безплатни сосове и подправки), 'extras' (платени добавки от категория „Добавки“).
+ * shop: false (на категория) — не се показва като отделен раздел в магазина.
  */
 (function (root) {
   const CATEGORIES = [
-    { id: 'duner', label: 'Дюнери',
+    { id: 'duner', label: 'Дюнери', options: ['ingredients', 'sauces', 'extras'],
       note: 'Дюнер месо от шиша, пресни зеленчуци и чеснов сос. Избери си размера.' },
-    { id: 'box', label: 'Duner Box',
+    { id: 'box', label: 'Duner Box', options: ['ingredients', 'sauces', 'extras'],
       note: 'Дюнер месо, картофки, салата и сосове, натъпкани в кутия.' },
-    { id: 'sandwich', label: 'Грил сандвичи', wide: true,
+    { id: 'sandwich', label: 'Грил сандвичи', wide: true, options: ['ingredients', 'sauces', 'extras'],
       sub: 'малък 330 гр. · голям 480 гр.', sizes: ['малък', 'голям'] },
-    { id: 'pocket', label: 'Джоб', sub: '600 гр.' },
-    { id: 'burger', label: 'Бургери' },
-    { id: 'salad', label: 'Салати' },
-    { id: 'sides', label: 'Гарнитури', sub: 'по 100 гр.' },
-    { id: 'extras', label: 'Добавки', compact: true,
-      note: 'Сложи отгоре на каквото си избрал. Цените ще ги видиш на бара.' },
+    { id: 'pocket', label: 'Джоб', sub: '600 гр.', options: ['ingredients', 'sauces', 'extras'] },
+    { id: 'burger', label: 'Бургери', options: ['ingredients', 'sauces', 'extras'] },
+    { id: 'salad', label: 'Салати', options: ['ingredients', 'sauces', 'extras'] },
+    { id: 'sides', label: 'Гарнитури', sub: 'по 100 гр.', options: ['sauces'] },
+    { id: 'extras', label: 'Добавки', compact: true, shop: false,
+      note: 'Добави ги към дюнер, кутия, сандвич, джоб, бургер или салата, когато поръчваш.' },
     { id: 'drinks', label: 'Напитки',
       note: 'Студени, направо от хладилника. Избери си вкуса.' },
   ];
@@ -83,18 +86,18 @@
     { id: 'side-rice', cat: 'sides', name: 'Ориз', desc: '100 гр.', prices: [2.0] },
     { id: 'side-meat', cat: 'sides', name: 'Допълнително месо', desc: '100 гр. дюнер месо', prices: [3.0] },
 
-    // Добавки — цените предстоят
-    { id: 'extra-kofte', cat: 'extras', name: 'Телешко кюфте', desc: '150 гр.', prices: [null] },
-    { id: 'extra-bacon', cat: 'extras', name: 'Бекон', desc: '50 гр.', prices: [null] },
-    { id: 'extra-lukanka', cat: 'extras', name: 'Луканка', desc: '50 гр.', prices: [null] },
-    { id: 'extra-ham', cat: 'extras', name: 'Шунка', desc: '50 гр.', prices: [null] },
-    { id: 'extra-cheese', cat: 'extras', name: 'Кашкавал', desc: '50 гр.', prices: [null] },
-    { id: 'extra-cheddar', cat: 'extras', name: 'Чедър', desc: '50 гр.', prices: [null] },
-    { id: 'extra-melted', cat: 'extras', name: 'Топено сирене', prices: [null] },
-    { id: 'extra-egg', cat: 'extras', name: 'Яйце', desc: '1 бр.', prices: [null] },
-    { id: 'extra-pita', cat: 'extras', name: 'Питка', desc: '1 бр.', prices: [null] },
-    { id: 'extra-rice', cat: 'extras', name: 'Ориз', desc: '50 гр.', prices: [null] },
-    { id: 'extra-fries', cat: 'extras', name: 'Картофи', desc: '50 гр.', prices: [null] },
+    // Добавки (по избор към храната)
+    { id: 'extra-kofte', cat: 'extras', name: 'Телешко кюфте', prices: [2.0] },
+    { id: 'extra-bacon', cat: 'extras', name: 'Бекон', prices: [1.0] },
+    { id: 'extra-lukanka', cat: 'extras', name: 'Луканка', prices: [1.0] },
+    { id: 'extra-ham', cat: 'extras', name: 'Шунка', prices: [1.0] },
+    { id: 'extra-cheese', cat: 'extras', name: 'Кашкавал', prices: [1.0] },
+    { id: 'extra-cheddar', cat: 'extras', name: 'Чедър', prices: [1.0] },
+    { id: 'extra-melted', cat: 'extras', name: 'Топено сирене', prices: [1.0] },
+    { id: 'extra-egg', cat: 'extras', name: 'Яйце', prices: [1.0] },
+    { id: 'extra-pita', cat: 'extras', name: 'Питка', prices: [1.0] },
+    { id: 'extra-rice', cat: 'extras', name: 'Ориз', prices: [1.0] },
+    { id: 'extra-fries', cat: 'extras', name: 'Картофи', prices: [1.0] },
 
     // Напитки
     { id: 'drink-cola', cat: 'drinks', name: 'Coca-Cola', desc: 'Кен.', prices: [1.5] },
@@ -181,6 +184,54 @@
     return item.prices[i];
   }
 
+  /* Безплатни съставки и сосове, които клиентът маркира при поръчка */
+  const INGREDIENTS = ['зеле', 'краставица', 'домат', 'маруля', 'лук пържен', 'лук пресен', 'картофи', 'месо', 'кисела краставичка'];
+  const SAUCES = ['чеснов', 'самурай', 'люто', 'кетчуп', 'барбекю', 'майонеза', 'горчица обикновена', 'горчица медена', 'чедър', 'сол', 'шарена сол'];
+
+  /*
+   * Проверява и подрежда избора на клиента за дадена позиция.
+   * Връща { ingredients, sauces, extras, extraPrice } или null, ако изборът е невалиден.
+   */
+  function normalizeOptions(item, opts) {
+    const cat = CATEGORIES.find((c) => c.id === item.cat);
+    const allowed = (cat && cat.options) || [];
+    const o = opts && typeof opts === 'object' ? opts : {};
+    const pick = (key, list) => {
+      const v = o[key] == null ? [] : o[key];
+      if (!Array.isArray(v) || v.some((x) => typeof x !== 'string')) return null;
+      if (v.length && !allowed.includes(key)) return null;
+      if (new Set(v).size !== v.length || v.some((x) => !list.includes(x))) return null;
+      return list.filter((x) => v.includes(x)); // в реда от менюто
+    };
+    const extraIds = MENU.filter((m) => m.cat === 'extras').map((m) => m.id);
+    const ingredients = pick('ingredients', INGREDIENTS);
+    const sauces = pick('sauces', SAUCES);
+    const extras = pick('extras', extraIds);
+    if (!ingredients || !sauces || !extras) return null;
+    const extraPrice = round2(extras.reduce((a, id) => a + (MENU.find((m) => m.id === id).prices[0] || 0), 0));
+    return { ingredients, sauces, extras, extraPrice };
+  }
+
+  /* Кратко описание на избора: „всичко без лук пресен · сосове: чеснов, люто · + бекон“ */
+  function optionsSummary(item, opts) {
+    const cat = CATEGORIES.find((c) => c.id === item.cat);
+    const allowed = (cat && cat.options) || [];
+    if (!allowed.length || !opts) return '';
+    const parts = [];
+    if (allowed.includes('ingredients')) {
+      const ing = opts.ingredients || [];
+      const missing = INGREDIENTS.filter((x) => !ing.includes(x));
+      if (!ing.length) parts.push('без съставки');
+      else if (!missing.length) parts.push('със всичко');
+      else if (missing.length <= 3) parts.push('всичко без ' + missing.join(', '));
+      else parts.push('с ' + ing.join(', '));
+    }
+    if (allowed.includes('sauces')) parts.push((opts.sauces || []).length ? 'сосове: ' + opts.sauces.join(', ') : 'без сос');
+    const ex = (opts.extras || []).map((id) => MENU.find((m) => m.id === id)).filter(Boolean);
+    if (ex.length) parts.push(ex.map((m) => '+ ' + m.name.toLowerCase()).join(', '));
+    return parts.join(' · ');
+  }
+
   /* Имената на размерите на позиция (labels на позицията или sizes на категорията) */
   function sizeLabels(item) {
     if (item.labels) return item.labels;
@@ -197,7 +248,8 @@
     phone: null,
   };
 
-  const data = { CATEGORIES, MENU, HOURS, ORDER, TZ, DAY_NAMES, BUSINESS, sofiaNow, orderWindow, priceOf, round2, sizeLabels };
+  const data = { CATEGORIES, MENU, HOURS, ORDER, TZ, DAY_NAMES, BUSINESS, INGREDIENTS, SAUCES,
+    sofiaNow, orderWindow, priceOf, round2, sizeLabels, normalizeOptions, optionsSummary };
   if (typeof module !== 'undefined' && module.exports) module.exports = data;
   else root.DUNER = data;
 })(typeof window !== 'undefined' ? window : globalThis);

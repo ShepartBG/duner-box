@@ -432,6 +432,22 @@
 </a>
 <div class="toast" data-toast role="status" aria-live="polite"></div>
 
+<!-- Прозорец „Направи си го“ -->
+<dialog class="bld" data-builder aria-labelledby="bld-title">
+  <div class="bld__card">
+    <button class="bld__close" type="button" data-b-close aria-label="Затвори">✕</button>
+    <div class="bld__body" data-b-body></div>
+    <div class="bld__foot">
+      <div class="qty qty--lg" aria-label="Количество">
+        <button type="button" data-b-step="-1" aria-label="По-малко">−</button>
+        <span data-b-qty>1</span>
+        <button type="button" data-b-step="1" aria-label="Повече">+</button>
+      </div>
+      <button class="btn btn--fire btn--lg bld__add" type="button" data-b-add>Добави · <span data-b-total>0,00 €</span></button>
+    </div>
+  </div>
+</dialog>
+
 <script src="menu-data.js"></script>
 <script src="script.js"></script>
 </body>

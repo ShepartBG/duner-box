@@ -59,15 +59,17 @@ function buildOrder(body, now) {
     const size = Number.isInteger(r.size) ? r.size : 0;
     const qty = Number(r.qty);
     const flavor = item && item.flavors ? r.flavor : undefined;
-    if (!item || size < 0 || size >= item.prices.length || !Number.isInteger(qty) || qty < 1 || qty > D.ORDER.maxQty
+    const opts = item ? D.normalizeOptions(item, r.opts) : null;
+    if (!item || !opts || size < 0 || size >= item.prices.length || !Number.isInteger(qty) || qty < 1 || qty > D.ORDER.maxQty
       || (item.flavors && !item.flavors.includes(flavor))) {
       errors.items = 'Невалидна позиция в количката.';
       continue;
     }
     const sizeLabel = [item.prices.length > 1 ? D.sizeLabels(item)[size] : '', flavor || ''].filter(Boolean).join(', ');
-    const price = item.prices[size];
+    const base = item.prices[size];
+    const price = base == null ? null : D.round2(base + opts.extraPrice);
     lines.push({
-      id: item.id, name: item.name, sizeLabel, qty,
+      id: item.id, name: item.name, sizeLabel, qty, options: D.optionsSummary(item, opts),
       price, sum: price == null ? null : D.round2(price * qty),
     });
   }
@@ -88,7 +90,7 @@ function buildOrder(body, now) {
 function itemsTable(o) {
   const rows = o.lines.map((l) => `
     <tr>
-      <td style="padding:8px 0;border-bottom:1px solid #3a2a1e;color:#f4e7d7">${l.qty} × ${esc(l.name)}${l.sizeLabel ? ` <span style="color:#ff8a2a">(${esc(l.sizeLabel)})</span>` : ''}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #3a2a1e;color:#f4e7d7">${l.qty} × ${esc(l.name)}${l.sizeLabel ? ` <span style="color:#ff8a2a">(${esc(l.sizeLabel)})</span>` : ''}${l.options ? `<br><span style="font-size:13px;color:#ffc21a">${esc(l.options)}</span>` : ''}</td>
       <td style="padding:8px 0;border-bottom:1px solid #3a2a1e;color:#f4e7d7;text-align:right;white-space:nowrap">${l.sum == null ? 'цена при доставка' : fmt(l.sum)}</td>
     </tr>`).join('');
   return `
@@ -130,7 +132,7 @@ function ownerEmail(o) {
     `Нова поръчка ${o.id} (${o.stamp})`,
     `Име: ${o.name}`, `Телефон: ${o.phone}`, `Имейл: ${o.email}`,
     o.notes ? `Описание: ${o.notes}` : '',
-    '', ...o.lines.map((l) => `${l.qty} x ${l.name}${l.sizeLabel ? ` (${l.sizeLabel})` : ''} — ${l.sum == null ? 'цена при доставка' : fmt(l.sum)}`),
+    '', ...o.lines.map((l) => `${l.qty} x ${l.name}${l.sizeLabel ? ` (${l.sizeLabel})` : ''}${l.options ? ` [${l.options}]` : ''} — ${l.sum == null ? 'цена при доставка' : fmt(l.sum)}`),
     '', `Общо: ${fmt(o.total)}`,
   ].filter((x) => x !== null).join('\n');
   return { subject: `🔥 Нова поръчка ${o.id} · ${fmt(o.total)} · ${o.name}`, html, text };
@@ -148,7 +150,7 @@ function customerEmail(o) {
   const text = [
     `Поръчката ти е приета! Номер: ${o.id}`,
     `Доставка: ${D.ORDER.area}, до ${D.ORDER.deliveryMinutes} минути. Плащане: ${D.ORDER.payment}.`,
-    '', ...o.lines.map((l) => `${l.qty} x ${l.name}${l.sizeLabel ? ` (${l.sizeLabel})` : ''} — ${l.sum == null ? 'цена при доставка' : fmt(l.sum)}`),
+    '', ...o.lines.map((l) => `${l.qty} x ${l.name}${l.sizeLabel ? ` (${l.sizeLabel})` : ''}${l.options ? ` [${l.options}]` : ''} — ${l.sum == null ? 'цена при доставка' : fmt(l.sum)}`),
     '', `Общо: ${fmt(o.total)}`,
   ].join('\n');
   return { subject: `Duner Box: поръчка ${o.id} е приета`, html, text };

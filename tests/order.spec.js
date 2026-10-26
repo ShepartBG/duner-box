@@ -3,6 +3,22 @@ const { test, expect } = require('@playwright/test');
 // Понеделник, 12.10.2026
 const AT = (hm) => new Date(`2026-10-12T${hm}:00+03:00`);
 
+
+/* Добавя храна през прозореца „Направи си го“ */
+async function addFood(page, id, { size, all, ingredients = [], sauces = [], extras = [], qty = 1 } = {}) {
+  const cat = await page.evaluate((x) => window.DUNER.MENU.find((m) => m.id === x).cat, id);
+  await page.locator(`#shop-tab-${cat}`).click();
+  await page.locator(`[data-product="${id}"] [data-add]`).click();
+  const d = page.locator('[data-builder]');
+  await expect(d).toBeVisible();
+  if (size != null) await d.locator(`[data-b-size="${size}"]`).click();
+  if (all) await d.locator('[data-b-all]').click();
+  for (const v of [...ingredients, ...sauces, ...extras]) await d.locator(`label.opt:has(input[value="${v}"])`).click();
+  for (let i = 1; i < qty; i++) await d.locator('[data-b-step="1"]').click();
+  await d.locator('[data-b-add]').click();
+  await expect(d).toBeHidden();
+}
+
 async function fillForm(page, { name = 'Иван Петров', phone = '0888 123 456', email = 'ivan@example.com', notes = 'Сграда 2, без лук', consent = true } = {}) {
   await page.fill('#f-name', name);
   await page.fill('#f-phone', phone);
@@ -73,31 +89,26 @@ test.describe('Поръчки за АЕЦ', () => {
   test('магазин: добавяне, размери, количества и общо', async ({ page }) => {
     await page.clock.setFixedTime(AT('09:30'));
     await page.goto('/');
-    await page.locator('#shop-tab-duner').click();
-    await page.locator('[data-product="duner-royal"] [data-add]').click();
-    await page.locator('[data-product="duner-royal"] [data-add]').click();
-    await page.locator('#shop-tab-sandwich').click();
-    const sand = page.locator('[data-product="sand-tarikatski"]');
-    await sand.locator('[data-size-pick="1"]').click();
-    await expect(sand.locator('[data-product-price]')).toHaveText('6,00 €');
-    await sand.locator('[data-add]').click();
+    await addFood(page, 'duner-royal', { all: true, sauces: ['чеснов'], qty: 2 });
+    await addFood(page, 'sand-tarikatski', { size: 1, extras: ['extra-kofte'] });
     await page.locator('#shop-tab-drinks').click();
-    await page.locator('#shop-tab-extras').click();
-    await page.locator('[data-product="extra-egg"] [data-add]').click();
+    await page.locator('[data-product="drink-cola"] [data-add]').click();
 
     const lines = page.locator('[data-cart-list] .cart__line');
     await expect(lines).toHaveCount(3);
     await expect(lines.nth(0)).toContainText('Дюнер кралски');
+    await expect(lines.nth(0)).toContainText('със всичко · сосове: чеснов');
     await expect(lines.nth(0).locator('[data-qty-val]')).toHaveText('2');
     await expect(lines.nth(1)).toContainText('Тарикатски (голям)');
-    await expect(page.locator('[data-cart-total]')).toHaveText('22,00 €');
-    await expect(page.locator('[data-cart-unpriced]')).toBeVisible();
+    await expect(lines.nth(1)).toContainText('+ телешко кюфте');
+    await expect(lines.nth(1)).toContainText('8,00 € / бр.');
+    await expect(page.locator('[data-cart-total]')).toHaveText('25,50 €'); // 2 × 8 + (6 + 2) + 1,50
+    await expect(page.locator('[data-cart-unpriced]')).toBeHidden();
 
     await lines.nth(0).locator('[data-qty="-1"]').click();
-    await expect(page.locator('[data-cart-total]')).toHaveText('14,00 €');
+    await expect(page.locator('[data-cart-total]')).toHaveText('17,50 €');
     await lines.nth(2).locator('[data-qty="-1"]').click();
     await expect(lines).toHaveCount(2);
-    await expect(page.locator('[data-cart-unpriced]')).toBeHidden();
 
     // количката се помни след презареждане
     await page.reload();
@@ -128,10 +139,73 @@ test.describe('Поръчки за АЕЦ', () => {
     await expect(page.locator('[data-cart-total]')).toHaveText('5,50 €');
   });
 
+  test('„Направи си го“: „Със всичко“, махане на съставка, добавки и цена', async ({ page }) => {
+    await page.clock.setFixedTime(AT('09:30'));
+    await page.goto('/');
+    await page.locator('[data-product="duner-large"] [data-add]').click();
+    const d = page.locator('[data-builder]');
+    await expect(d).toBeVisible();
+    await expect(d.locator('#bld-title')).toHaveText('Дюнер голям');
+    await expect(d.locator('input[name="ingredients"]:checked')).toHaveCount(0);
+    await expect(d.locator('[data-b-total]')).toHaveText('5,00 €');
+
+    await d.locator('[data-b-all]').click();
+    await expect(d.locator('input[name="ingredients"]:checked')).toHaveCount(9);
+    await expect(d.locator('[data-b-all]')).toHaveText('✕ Махни всички');
+    await d.locator('label.opt:has(input[value="лук пресен"])').click();
+    await expect(d.locator('input[name="ingredients"]:checked')).toHaveCount(8);
+    await expect(d.locator('[data-b-all]')).toHaveText('✓ Със всичко');
+
+    await d.locator('label.opt:has(input[value="extra-kofte"])').click();
+    await d.locator('label.opt:has(input[value="extra-bacon"])').click();
+    await expect(d.locator('[data-b-total]')).toHaveText('8,00 €'); // 5 + 2 + 1
+    await d.locator('[data-b-step="1"]').click();
+    await expect(d.locator('[data-b-total]')).toHaveText('16,00 €');
+    await d.locator('[data-b-add]').click();
+
+    const line = page.locator('[data-cart-list] .cart__line');
+    await expect(line).toHaveCount(1);
+    await expect(line).toContainText('всичко без лук пресен');
+    await expect(line).toContainText('+ телешко кюфте, + бекон');
+    await expect(page.locator('[data-cart-total]')).toHaveText('16,00 €');
+
+    // същият избор се събира в един ред, различен избор е нов ред
+    await addFood(page, 'duner-large');
+    await expect(line).toHaveCount(2);
+  });
+
+  test('„Направи си го“: размер, затваряне с Esc и без съставки за гарнитурите', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('#shop-tab-sandwich').click();
+    await page.locator('[data-product="sand-pacific"] [data-add]').click();
+    const d = page.locator('[data-builder]');
+    await d.locator('[data-b-size="1"]').click();
+    await expect(d.locator('[data-b-total]')).toHaveText('5,50 €');
+    await page.keyboard.press('Escape');
+    await expect(d).toBeHidden();
+    await expect(page.locator('[data-cart-list] .cart__line')).toHaveCount(0);
+
+    await page.locator('#shop-tab-sides').click();
+    await page.locator('[data-product="side-fries"] [data-add]').click();
+    await expect(d.locator('[data-b-group="sauces"]')).toBeVisible();
+    await expect(d.locator('[data-b-group="ingredients"]')).toHaveCount(0);
+    await expect(d.locator('[data-b-group="extras"]')).toHaveCount(0);
+    await d.locator('[data-b-close]').click();
+    await expect(d).toBeHidden();
+
+    // напитките се добавят директно, без прозорец
+    await page.locator('#shop-tab-drinks').click();
+    await page.locator('[data-product="drink-ayran"] [data-add]').click();
+    await expect(d).toBeHidden();
+    await expect(page.locator('[data-cart-list] .cart__line')).toHaveCount(1);
+    // добавките не са отделен раздел в магазина
+    await expect(page.locator('#shop-tab-extras')).toHaveCount(0);
+  });
+
   test('извън 9:00–10:00 бутонът за изпращане е заключен', async ({ page }) => {
     await page.clock.setFixedTime(AT('10:30'));
     await page.goto('/');
-    await page.locator('[data-product="duner-small"] [data-add]').click();
+    await addFood(page, 'duner-small');
     await fillForm(page);
     await expect(page.locator('[data-submit]')).toBeDisabled();
     await expect(page.locator('[data-closed-note]')).toHaveText(/9:00 до 10:00/);
@@ -147,7 +221,7 @@ test.describe('Поръчки за АЕЦ', () => {
   test('задължителните полета се проверяват', async ({ page }) => {
     await page.clock.setFixedTime(AT('09:30'));
     await page.goto('/');
-    await page.locator('[data-product="duner-small"] [data-add]').click();
+    await addFood(page, 'duner-small');
     await fillForm(page, { name: '', phone: '123', email: 'не-е-имейл', consent: false });
     await page.locator('[data-submit]').click();
     await expect(page.locator('[data-err="name"]')).toHaveText('Въведи имената си.');
@@ -162,9 +236,8 @@ test.describe('Поръчки за АЕЦ', () => {
     await page.clock.setFixedTime(AT('09:30'));
     const bodies = await routeWithClock(page, '2026-10-12T09:30:00+03:00');
     await page.goto('/');
-    await page.locator('[data-product="duner-royal"] [data-add]').click();
-    await page.locator('#shop-tab-box').click();
-    await page.locator('[data-product="box-large"] [data-add]').click();
+    await addFood(page, 'duner-royal', { all: true, sauces: ['люто'] });
+    await addFood(page, 'box-large');
     await page.locator('#shop-tab-drinks').click();
     await page.locator('[data-product="drink-hell"] [data-flavor]').selectOption('диня');
     await page.locator('[data-product="drink-hell"] [data-add]').click();
@@ -181,8 +254,12 @@ test.describe('Поръчки за АЕЦ', () => {
     expect(bodies).toHaveLength(1);
     expect(bodies[0]).toMatchObject({
       name: 'Иван Петров', phone: '0888 123 456', email: 'ivan@example.com', notes: 'Сграда 2, без лук', consent: true,
-      items: [{ id: 'duner-royal', size: 0, qty: 1 }, { id: 'box-large', size: 0, qty: 1 }, { id: 'drink-hell', size: 0, flavor: 'диня', qty: 1 }],
     });
+    expect(bodies[0].items).toHaveLength(3);
+    expect(bodies[0].items[0]).toMatchObject({ id: 'duner-royal', size: 0, qty: 1, opts: { sauces: ['люто'], extras: [] } });
+    expect(bodies[0].items[0].opts.ingredients).toHaveLength(9);
+    expect(bodies[0].items[1]).toMatchObject({ id: 'box-large', qty: 1, opts: { ingredients: [], sauces: [], extras: [] } });
+    expect(bodies[0].items[2]).toEqual({ id: 'drink-hell', size: 0, flavor: 'диня', qty: 1 });
 
     await page.locator('[data-new-order]').click();
     await expect(page.locator('[data-order-form]')).toBeVisible();
@@ -192,7 +269,7 @@ test.describe('Поръчки за АЕЦ', () => {
     await page.clock.setFixedTime(AT('09:59'));
     await routeWithClock(page, '2026-10-12T10:01:00+03:00');
     await page.goto('/');
-    await page.locator('[data-product="duner-small"] [data-add]').click();
+    await addFood(page, 'duner-small');
     await fillForm(page);
     await page.locator('[data-submit]').click();
     await expect(page.locator('[data-form-msg]')).toHaveText(/само от 9:00 до 10:00/);
@@ -204,6 +281,7 @@ test.describe('Поръчки за АЕЦ', () => {
     await page.goto('/');
     await expect(page.locator('[data-fab]')).toBeHidden();
     await page.locator('[data-hits] [data-add]').first().click();
+    await page.locator('[data-b-add]').click();
     await expect(page.locator('[data-fab]')).toBeVisible();
     await expect(page.locator('[data-fab-count]')).toHaveText('1');
     await page.locator('[data-fab]').click();

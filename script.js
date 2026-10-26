@@ -1,7 +1,7 @@
 /* ===== Duner Box — script =====
  * Менюто, цените и правилата за поръчка са в menu-data.js (window.DUNER).
  */
-const { CATEGORIES, MENU, HOURS, ORDER, DAY_NAMES, sofiaNow, orderWindow, round2, sizeLabels } = window.DUNER;
+const { CATEGORIES, MENU, HOURS, ORDER, DAY_NAMES, INGREDIENTS, SAUCES, sofiaNow, orderWindow, round2, sizeLabels, normalizeOptions, optionsSummary } = window.DUNER;
 
 const IMG = (name) => `assets/img/${name}.webp`;
 const eur = (n) => `${n.toFixed(2).replace('.', ',')} €`;
@@ -37,7 +37,7 @@ function renderHits() {
         <p>${m.desc || cat.note || ''}</p>
         <div class="hit__foot">
           <span class="price silver">${multi ? 'от ' : ''}${eur(m.prices[0])}</span>
-          <button class="btn btn--fire btn--sm" type="button" data-add="${m.id}" data-size="0">+ Добави</button>
+          <button class="btn btn--fire btn--sm" type="button" data-add="${m.id}" data-size="0">${hasOptions(m) ? '+ Избери' : '+ Добави'}</button>
         </div>
       </div>
     </article>`;
@@ -138,7 +138,8 @@ document.addEventListener('click', (e) => {
 /* ======================================================================
  * Поръчки за вкъщи
  * ==================================================================== */
-const cart = { lines: store.get('db-cart', []) }; // [{id, size, flavor?, qty}]
+const cart = { lines: store.get('db-cart', []) }; // [{id, size, flavor?, opts?, qty}]
+const hasOptions = (m) => (catOf(m.cat).options || []).length > 0;
 let windowState = orderWindow();
 let sending = false;
 
@@ -146,9 +147,10 @@ function renderShop() {
   const tabs = $('[data-shop-tabs]');
   const grid = $('[data-shop]');
   if (!tabs || !grid) return;
-  tabs.innerHTML = CATEGORIES.map((c, i) => `
+  const shopCats = CATEGORIES.filter((c) => c.shop !== false);
+  tabs.innerHTML = shopCats.map((c, i) => `
     <button class="chip" type="button" role="tab" id="shop-tab-${c.id}" data-shop-cat="${c.id}" aria-selected="${i === 0}">${c.label}</button>`).join('');
-  grid.innerHTML = MENU.map((m) => {
+  grid.innerHTML = MENU.filter((m) => catOf(m.cat).shop !== false).map((m) => {
     const multi = m.prices.length > 1;
     return `
     <article class="product" data-product="${m.id}" data-cat="${m.cat}">
@@ -164,7 +166,7 @@ function renderShop() {
         </select></label>` : ''}
         <div class="product__foot">
           <span class="product__price" data-product-price>${priceHtml(m.prices[0])}</span>
-          <button class="btn btn--fire btn--sm" type="button" data-add="${m.id}" data-size="0" aria-label="Добави ${m.name}">+ Добави</button>
+          <button class="btn btn--fire btn--sm" type="button" data-add="${m.id}" data-size="0" aria-label="Добави ${m.name}">${hasOptions(m) ? '+ Избери' : '+ Добави'}</button>
         </div>
       </div>
     </article>`;
@@ -203,16 +205,30 @@ function lineLabel(l) {
   const extra = [m.prices.length > 1 ? sizeLabels(m)[l.size] : '', l.flavor || ''].filter(Boolean).join(', ');
   return extra ? `${m.name} (${extra})` : m.name;
 }
-const linePrice = (l) => itemOf(l.id).prices[l.size];
+function linePrice(l) {
+  const m = itemOf(l.id);
+  const base = m.prices[l.size];
+  if (base == null) return null;
+  const o = normalizeOptions(m, l.opts);
+  return round2(base + (o ? o.extraPrice : 0));
+}
+const optsKey = (o) => JSON.stringify(o || null);
 
-function addToCart(id, size, flavor, fromEl) {
+function addToCart(id, size, flavor, fromEl, opts, qty = 1) {
   const m = itemOf(id);
   if (!m) return;
   if (m.flavors && !m.flavors.includes(flavor)) flavor = m.flavors[0];
   if (!m.flavors) flavor = undefined;
-  const ex = cart.lines.find((l) => l.id === id && l.size === size && l.flavor === flavor);
-  if (ex) ex.qty = Math.min(ORDER.maxQty, ex.qty + 1);
-  else cart.lines.push(flavor ? { id, size, flavor, qty: 1 } : { id, size, qty: 1 });
+  const o = hasOptions(m) ? normalizeOptions(m, opts) : null;
+  const clean = o ? { ingredients: o.ingredients, sauces: o.sauces, extras: o.extras } : undefined;
+  const ex = cart.lines.find((l) => l.id === id && l.size === size && l.flavor === flavor && optsKey(l.opts) === optsKey(clean));
+  if (ex) ex.qty = Math.min(ORDER.maxQty, ex.qty + qty);
+  else {
+    const line = { id, size, qty: Math.min(ORDER.maxQty, qty) };
+    if (flavor) line.flavor = flavor;
+    if (clean) line.opts = clean;
+    cart.lines.push(line);
+  }
   saveCart();
   renderCart();
   toast(`🔥 ${lineLabel({ id, size, flavor })} е в количката`);
@@ -224,7 +240,8 @@ function addToCart(id, size, flavor, fromEl) {
 function saveCart() {
   cart.lines = cart.lines.filter((l) => {
     const m = itemOf(l.id);
-    return m && l.qty > 0 && l.size < m.prices.length && (!m.flavors || m.flavors.includes(l.flavor));
+    return m && l.qty > 0 && l.size < m.prices.length && (!m.flavors || m.flavors.includes(l.flavor))
+      && (!hasOptions(m) ? !l.opts : !!normalizeOptions(m, l.opts));
   });
   store.set('db-cart', cart.lines);
 }
@@ -247,7 +264,7 @@ function renderCart() {
     const p = linePrice(l);
     return `
     <li class="cart__line" data-line="${i}">
-      <div class="cart__name">${lineLabel(l)}<small>${p == null ? 'цена при доставка' : `${eur(p)} / бр.`}</small></div>
+      <div class="cart__name">${lineLabel(l)}${l.opts ? `<span class="cart__opts">${optionsSummary(itemOf(l.id), l.opts)}</span>` : ''}<small>${p == null ? 'цена при доставка' : `${eur(p)} / бр.`}</small></div>
       <div class="qty">
         <button type="button" data-qty="-1" aria-label="Едно по-малко ${lineLabel(l)}">−</button>
         <span data-qty-val>${l.qty}</span>
@@ -285,10 +302,116 @@ function initCart() {
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-add]');
     if (!b) return;
+    const m = itemOf(b.dataset.add);
+    if (m && hasOptions(m)) { openBuilder(m, Number(b.dataset.size || 0)); return; }
     const sel = b.closest('[data-product]')?.querySelector('[data-flavor]');
     addToCart(b.dataset.add, Number(b.dataset.size || 0), sel ? sel.value : undefined, b);
   });
   renderCart();
+}
+
+/* --- „Направи си го“: избор на съставки, сосове и добавки --- */
+const builder = { item: null, size: 0, qty: 1 };
+const EXTRAS = MENU.filter((m) => m.cat === 'extras');
+
+function chips(name, list, label = (x) => x) {
+  return list.map((v) => `
+    <label class="opt"><input type="checkbox" name="${name}" value="${v}"><span>${label(v)}</span></label>`).join('');
+}
+
+function openBuilder(m, size = 0) {
+  const dlg = $('[data-builder]');
+  const allowed = catOf(m.cat).options || [];
+  builder.item = m; builder.size = size; builder.qty = 1;
+  const multi = m.prices.length > 1;
+  dlg.querySelector('[data-b-body]').innerHTML = `
+    <div class="bld__head">
+      <img src="${IMG(thumbOf(m))}" alt="" class="bld__img${m.cutout ? ' is-cutout' : ''}">
+      <div><h3 id="bld-title">${m.name}</h3>${m.desc ? `<p>${m.desc}</p>` : ''}</div>
+    </div>
+    ${multi ? `<div class="bld__sec"><h4>Размер</h4><div class="sizes" role="radiogroup" aria-label="Размер">
+      ${m.prices.map((p, i) => `<button type="button" class="size" role="radio" aria-checked="${i === size}" data-b-size="${i}">${sizeLabels(m)[i]} · ${eur(p)}</button>`).join('')}
+    </div></div>` : ''}
+    ${allowed.includes('ingredients') ? `<div class="bld__sec" data-b-group="ingredients">
+      <div class="bld__row"><h4>Със какво да е?</h4><button type="button" class="opt-all" data-b-all aria-pressed="false">✓ Със всичко</button></div>
+      <div class="opts">${chips('ingredients', INGREDIENTS)}</div>
+    </div>` : ''}
+    ${allowed.includes('sauces') ? `<div class="bld__sec" data-b-group="sauces">
+      <h4>Сосове и подправки <small>безплатно</small></h4>
+      <div class="opts">${chips('sauces', SAUCES)}</div>
+    </div>` : ''}
+    ${allowed.includes('extras') ? `<div class="bld__sec" data-b-group="extras">
+      <h4>Добавки</h4>
+      <div class="opts">${chips('extras', EXTRAS.map((x) => x.id), (id) => { const x = itemOf(id); return `${x.name} <em>+${eur(x.prices[0])}</em>`; })}</div>
+    </div>` : ''}`;
+  updateBuilder();
+  if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+  document.body.classList.add('bld-open');
+}
+
+function builderOpts() {
+  const dlg = $('[data-builder]');
+  const vals = (n) => $$(`input[name="${n}"]:checked`, dlg).map((i) => i.value);
+  return { ingredients: vals('ingredients'), sauces: vals('sauces'), extras: vals('extras') };
+}
+
+function updateBuilder() {
+  const dlg = $('[data-builder]');
+  const m = builder.item;
+  const o = normalizeOptions(m, builderOpts());
+  const unit = round2(m.prices[builder.size] + (o ? o.extraPrice : 0));
+  $('[data-b-qty]', dlg).textContent = builder.qty;
+  $('[data-b-total]', dlg).textContent = eur(unit * builder.qty);
+  const all = $$('input[name="ingredients"]', dlg);
+  const btn = $('[data-b-all]', dlg);
+  if (btn) {
+    const full = all.length && all.every((i) => i.checked);
+    btn.setAttribute('aria-pressed', String(full));
+    btn.textContent = full ? '✕ Махни всички' : '✓ Със всичко';
+  }
+}
+
+function closeBuilder() {
+  const dlg = $('[data-builder]');
+  if (dlg.open && typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open');
+  document.body.classList.remove('bld-open');
+}
+
+function initBuilder() {
+  const dlg = $('[data-builder]');
+  if (!dlg) return;
+  dlg.addEventListener('change', updateBuilder);
+  dlg.addEventListener('close', () => document.body.classList.remove('bld-open'));
+  dlg.addEventListener('click', (e) => {
+    if (e.target === dlg) { closeBuilder(); return; } // клик извън картата
+    if (e.target.closest('[data-b-close]')) { closeBuilder(); return; }
+    const all = e.target.closest('[data-b-all]');
+    if (all) {
+      const boxes = $$('input[name="ingredients"]', dlg);
+      const full = boxes.every((i) => i.checked);
+      boxes.forEach((i) => { i.checked = !full; });
+      updateBuilder();
+      return;
+    }
+    const sz = e.target.closest('[data-b-size]');
+    if (sz) {
+      builder.size = Number(sz.dataset.bSize);
+      $$('[data-b-size]', dlg).forEach((b) => b.setAttribute('aria-checked', String(b === sz)));
+      updateBuilder();
+      return;
+    }
+    const q = e.target.closest('[data-b-step]');
+    if (q) {
+      builder.qty = Math.max(1, Math.min(ORDER.maxQty, builder.qty + Number(q.dataset.bStep)));
+      updateBuilder();
+      return;
+    }
+    if (e.target.closest('[data-b-add]')) {
+      const btn = $('[data-b-add]', dlg);
+      addToCart(builder.item.id, builder.size, undefined, btn, builderOpts(), builder.qty);
+      closeBuilder();
+    }
+  });
 }
 
 /* --- форма --- */
@@ -335,7 +458,7 @@ function initForm() {
       name: String(fd.get('name') || ''), phone: String(fd.get('phone') || ''),
       email: String(fd.get('email') || ''), notes: String(fd.get('notes') || ''),
       website: String(fd.get('website') || ''), consent: fd.get('consent') === 'on',
-      items: cart.lines.map((l) => (l.flavor ? { id: l.id, size: l.size, flavor: l.flavor, qty: l.qty } : { id: l.id, size: l.size, qty: l.qty })),
+      items: cart.lines.map((l) => ({ id: l.id, size: l.size, qty: l.qty, ...(l.flavor ? { flavor: l.flavor } : {}), ...(l.opts ? { opts: l.opts } : {}) })),
     };
     const errs = validate(data);
     setErrors(errs);
@@ -680,6 +803,7 @@ renderMenu();
 setCategory('all');
 renderShop();
 initCart();
+initBuilder();
 initForm();
 tickTimer();
 setInterval(tickTimer, 1000);
