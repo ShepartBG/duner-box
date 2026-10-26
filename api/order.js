@@ -12,6 +12,7 @@
  *   ALLOW_TEST_CLOCK — "1" само в тестове: позволява хедър x-test-now
  */
 const D = require('../menu-data.js');
+const B = D.BUSINESS;
 
 const DEFAULT_OWNER = 'jeki.1997@abv.bg';
 const DEFAULT_FROM = 'Duner Box <onboarding@resend.dev>';
@@ -110,7 +111,7 @@ function shell(title, inner) {
           <h1 style="margin:0 0 14px;font-size:22px;color:#ffc21a">${title}</h1>
           ${inner}
         </td></tr>
-        <tr><td style="padding:16px 24px;border-top:1px solid #3a2a1e;color:#b9a491;font-size:12px">Duner Box · ул. Търговска 77, 3320 Козлодуй</td></tr>
+        <tr><td style="padding:16px 24px;border-top:1px solid #3a2a1e;color:#b9a491;font-size:12px">${esc(B.brand)} · ${esc(B.address)}<br>${esc(B.company)} · ЕИК ${esc(B.eik)}${B.phone ? ` · тел. ${esc(B.phone)}` : ''}</td></tr>
       </table>
     </td></tr>
   </table></body></html>`;

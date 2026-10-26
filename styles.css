@@ -578,3 +578,6 @@ p{margin:0 0 1em}
 .logo:hover .logo__o{animation:spitWiggle .6s ease-in-out}
 @keyframes spitWiggle{30%{transform:translateY(-.02em) rotate(-14deg)}70%{transform:translateY(-.02em) rotate(10deg)}}
 .food{position:fixed;left:0;top:0;z-index:120;pointer-events:none;line-height:1;will-change:transform,opacity;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+
+.footer__company{display:flex;flex-wrap:wrap;gap:6px 18px;padding-bottom:18px;font-size:.8rem;color:var(--muted)}
+.footer__company b{color:var(--text);font-weight:600}

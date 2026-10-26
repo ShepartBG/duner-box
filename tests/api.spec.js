@@ -181,3 +181,13 @@ test('Netlify обвивката връща същите отговори', asyn
     process.env.RESEND_API_KEY = old;
   }
 });
+
+test('имейлите съдържат данните на фирмата', async () => {
+  const sent = [];
+  const fetchImpl = async (u, o) => { sent.push(JSON.parse(o.body)); return { ok: true, json: async () => ({}) }; };
+  await handleOrder(good(), { now: OPEN, env: ENV, fetchImpl, ip: '3.3.3.3' });
+  for (const m of sent) {
+    expect(m.html).toContain('Станислав Стоянов-94 ЕООД');
+    expect(m.html).toContain('ЕИК 206587193');
+  }
+});

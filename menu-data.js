@@ -188,7 +188,16 @@
     return (cat && cat.sizes) || [];
   }
 
-  const data = { CATEGORIES, MENU, HOURS, ORDER, TZ, DAY_NAMES, sofiaNow, orderWindow, priceOf, round2, sizeLabels };
+  /* Фирмата (показва се във футъра и в имейлите). phone: null = още няма — не се показва. */
+  const BUSINESS = {
+    brand: 'Duner Box',
+    company: 'Станислав Стоянов-94 ЕООД',
+    eik: '206587193',
+    address: 'ул. Търговска 77, 3320 Козлодуй',
+    phone: null,
+  };
+
+  const data = { CATEGORIES, MENU, HOURS, ORDER, TZ, DAY_NAMES, BUSINESS, sofiaNow, orderWindow, priceOf, round2, sizeLabels };
   if (typeof module !== 'undefined' && module.exports) module.exports = data;
   else root.DUNER = data;
 })(typeof window !== 'undefined' ? window : globalThis);

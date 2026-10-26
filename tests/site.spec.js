@@ -403,3 +403,13 @@ test.describe('лого и връщане най-горе', () => {
     expect(new URL(page.url()).hash).toBe('');
   });
 });
+
+test('данните на фирмата са във футъра и в съгласието', async ({ page }) => {
+  await page.goto('/');
+  const f = page.locator('.footer__company');
+  await expect(f).toContainText('Станислав Стоянов-94 ЕООД');
+  await expect(f).toContainText('ЕИК 206587193');
+  await expect(f).toContainText('ул. Търговска 77, 3320 Козлодуй');
+  await expect(page.locator('.check')).toContainText('Станислав Стоянов-94');
+  await expect(page.locator('[data-phone]')).toBeHidden(); // няма телефон засега
+});

@@ -694,5 +694,13 @@ initReveal();
 const royal = itemOf('duner-royal');
 const sticker = $('[data-sticker] b');
 if (royal && sticker) sticker.textContent = eur(royal.prices[0]);
+const { phone } = window.DUNER.BUSINESS;
+if (phone) {
+  const box = $('[data-phone]');
+  const a = $('[data-phone-link]');
+  a.textContent = phone;
+  a.href = 'tel:' + phone.replace(/[^d+]/g, '');
+  box.hidden = false;
+}
 const yr = $('[data-year]');
 if (yr) yr.textContent = new Date().getFullYear();
