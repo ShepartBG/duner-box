@@ -11,11 +11,11 @@ const { handleOrder } = require('../api/order.js');
   const env = process.env;
   if (!env.RESEND_API_KEY) {
     console.error('Липсва RESEND_API_KEY в .env');
-    process.exit(1);
+    process.exitCode = 1; return;
   }
   if (!env.RESEND_FROM) {
     console.error('Липсва RESEND_FROM в .env (напр. Duner Box <poruchki@твоят-домейн.bg>)');
-    process.exit(1);
+    process.exitCode = 1; return;
   }
   const customer = process.argv[2] || env.OWNER_EMAIL || 'jeki.1997@abv.bg';
   // фиксиран час в прозореца за поръчки, за да може тестът да мине по всяко време
@@ -41,5 +41,5 @@ const { handleOrder } = require('../api/order.js');
   if (r.json.ok) {
     console.log(`Поръчка ${r.json.orderId}: имейл към собственика → ${env.OWNER_EMAIL || 'jeki.1997@abv.bg'}, потвърждение → ${customer}`);
   }
-  process.exit(r.json.ok && r.json.customerEmailSent !== false ? 0 : 1);
+  process.exitCode = r.json.ok && r.json.customerEmailSent !== false ? 0 : 1;
 })();
