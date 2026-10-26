@@ -7,6 +7,12 @@
   node_bundler = "esbuild"
 
 [[redirects]]
+  from = "/api/decision"
+  to = "/.netlify/functions/decision"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/order"
   to = "/.netlify/functions/order"
   status = 200

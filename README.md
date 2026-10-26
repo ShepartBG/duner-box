@@ -20,7 +20,7 @@
 |---|---|
 | `RESEND_API_KEY` | `re_...` (без него — тестов режим, имейлите само се логват) |
 | `RESEND_FROM` | `Duner Box <poruchki@dunerbox.bg>` (домейнът трябва да е верифициран в Resend) |
-| `OWNER_EMAIL` | `jeki.1997@abv.bg` |
+| `OWNER_EMAIL` | `dunerbox77@abv.bg` (собственикът) |
 | `ALLOWED_ORIGINS` | сайтовете, от които може да се поръчва (ако API-то е на друг домейн) |
 
 На GitHub Pages няма сървър, затова там формата работи в **демо режим** (не праща нищо).

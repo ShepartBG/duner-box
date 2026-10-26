@@ -13,6 +13,7 @@ const IGNORED = /node_modules|tests|test-results|screenshots|playwright-report|\
 // тези папки не се сервират като статични файлове
 const PRIVATE = /^(api|scripts|\.env[^\\/]*|photos|node_modules|tests|test-results|screenshots|playwright-report|\.git)([\\/]|$)/;
 const orderApi = require('./api/order.js');
+const decisionApi = require('./api/decision.js');
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml',
@@ -50,6 +51,7 @@ http.createServer((req, res) => {
   }
 
   if (url === '/api/order') return orderApi(req, res);
+  if (url === '/api/decision') return decisionApi(req, res);
 
   const file = path.normalize(path.join(ROOT, url === '/' ? 'index.html' : url));
   if (!file.startsWith(ROOT) || PRIVATE.test(path.relative(ROOT, file))) {

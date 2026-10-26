@@ -31,7 +31,7 @@ function fakeResend(fail = []) {
   };
   return { sent, fetchImpl };
 }
-const ENV = { RESEND_API_KEY: 're_test', RESEND_FROM: 'Duner Box <poruchki@dunerbox.bg>', OWNER_EMAIL: 'jeki.1997@abv.bg' };
+const ENV = { RESEND_API_KEY: 're_test', RESEND_FROM: 'Duner Box <poruchki@dunerbox.bg>', OWNER_EMAIL: 'jeki.1997@abv.bg', ORDER_SECRET: 'test-secret' };
 
 test('изпраща 2 имейла: към собственика и към клиента', async () => {
   const { sent, fetchImpl } = fakeResend();
@@ -60,7 +60,11 @@ test('изпраща 2 имейла: към собственика и към к�
   expect(owner.text).toContain('[с зеле, домат · сосове: чеснов · + телешко кюфте]');
 
   expect(cust.to).toEqual(['maria@example.com']);
-  expect(cust.subject).toContain('е приета');
+  expect(cust.subject).toContain('получихме поръчка');
+  expect(cust.html).toContain('Очаквай потвърждение');
+  expect(owner.html).toContain('✅ Приемам');
+  expect(owner.html).toContain('❌ Отказвам');
+  expect(owner.subject).not.toMatch(/\p{Extended_Pictographic}/u); // без емоджи в заглавието
   expect(cust.html).toContain('АЕЦ Козлодуй');
   expect(cust.html).toContain('30 минути');
   expect(cust.html).toContain('само в брой');
@@ -143,7 +147,7 @@ test('без RESEND_API_KEY работи в тестов режим и не пр
   const r = await handleOrder(good(), { now: OPEN, env: {}, fetchImpl, ip: '1.1.1.8' });
   expect(r.status).toBe(200);
   expect(r.json.dryRun).toBe(true);
-  expect(r.emails[0].to).toEqual(['jeki.1997@abv.bg']);
+  expect(r.emails[0].to).toEqual(['dunerbox77@abv.bg']);
   expect(sent).toHaveLength(0);
 });
 

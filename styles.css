@@ -629,3 +629,4 @@ body.bld-open{overflow:hidden}
   .opt span{font-size:.88rem;padding:.55em .85em}
   .bld__foot{padding:12px 16px calc(14px + env(safe-area-inset-bottom))}
 }
+.done__hint{color:var(--muted)!important;font-size:.8rem!important}

@@ -6,6 +6,20 @@
   <title>Duner Box — дюнер в Козлодуй</title>
   <meta name="description" content="Duner Box — дюнери, Duner Box кутии, грил сандвичи, бургери и салати на ул. Търговска 77, Козлодуй. Доставка до АЕЦ Козлодуй, поръчки от 9:00 до 10:00.">
   <meta name="theme-color" content="#0b0705">
+  <!-- старият адрес (GitHub Pages) → официалният сайт -->
+  <script>if (/github\.io$/.test(location.hostname)) location.replace('https://dunerbox.bg/');</script>
+  <link rel="canonical" href="https://dunerbox.bg/">
+  <!-- Споделяне във Facebook / Viber / Messenger -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Duner Box">
+  <meta property="og:url" content="https://dunerbox.bg/">
+  <meta property="og:title" content="Duner Box — дюнер в Козлодуй">
+  <meta property="og:description" content="Дюнери, Duner Box, грил сандвичи и бургери на ул. Търговска 77. Доставка до АЕЦ Козлодуй — поръчки от 9:00 до 10:00.">
+  <meta property="og:image" content="https://dunerbox.bg/assets/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="bg_BG">
+  <meta name="twitter:card" content="summary_large_image">
   <!-- Адрес на API за поръчки. Празно = /api/order на същия сайт. -->
   <meta name="order-api" content="">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -261,9 +275,10 @@
 
         <div class="done" data-done hidden>
           <div class="done__icon" aria-hidden="true">🔥</div>
-          <h3>Поръчката е приета!</h3>
+          <h3>Поръчката е изпратена!</h3>
           <p>Номер: <b data-done-id></b></p>
-          <p>Доставяме я до <b>30 минути</b> в АЕЦ Козлодуй. Плащането е в брой. Провери имейла си за потвърждение.</p>
+          <p><b>Очаквай потвърждение по имейл до няколко минути.</b> След потвърждението доставяме до 30 минути в АЕЦ Козлодуй. Плащането е в брой.</p>
+          <p class="done__hint">Не виждаш имейла? Провери и папка „Спам“.</p>
           <p class="done__demo" data-done-demo hidden>Това е демо версия на сайта. Поръчката не е изпратена истински.</p>
           <button class="btn btn--ghost" type="button" data-new-order>Нова поръчка</button>
         </div>

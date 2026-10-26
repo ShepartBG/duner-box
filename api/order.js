@@ -1,6 +1,8 @@
 /*
- * POST /api/order — приема поръчка за вкъщи (АЕЦ Козлодуй) и изпраща 2 имейла през Resend:
- *   1) към собственика (нова поръчка), 2) към клиента (потвърждение).
+ * POST /api/order — приема поръчка за вкъщи (АЕЦ Козлодуй):
+ *   1) записва я като „чакаща“ в хранилището (api/store.js);
+ *   2) праща на собственика имейл с бутони „Приемам“ / „Отказвам“ (→ api/decision.js);
+ *   3) праща на клиента „Получихме поръчката ти, очаквай потвърждение“.
  *
  * Работи като Vercel serverless функция и локално през server.js.
  *
@@ -10,11 +12,13 @@
  *   OWNER_EMAIL      — къде да идват поръчките (по подразбиране тестовият адрес)
  *   ALLOWED_ORIGINS  — разрешени сайтове за CORS, разделени със запетая
  *   ALLOW_TEST_CLOCK — "1" само в тестове: позволява хедър x-test-now
+ *   ORDER_SECRET     — таен ключ за подписване на линковете за потвърждение (задължителен при истински имейли)
  */
+const crypto = require('crypto');
 const D = require('../menu-data.js');
 const B = D.BUSINESS;
 
-const DEFAULT_OWNER = 'jeki.1997@abv.bg';
+const DEFAULT_OWNER = 'dunerbox77@abv.bg';
 const DEFAULT_FROM = 'Duner Box <onboarding@resend.dev>';
 const DEFAULT_ORIGINS = 'https://shepartbg.github.io,http://localhost:5173,http://localhost:5174';
 
@@ -81,9 +85,23 @@ function buildOrder(body, now) {
   }).format(now);
   const p = new Intl.DateTimeFormat('en-GB', { timeZone: D.TZ, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
     .formatToParts(now).reduce((o, x) => ({ ...o, [x.type]: x.value }), {});
-  const id = `DB-${p.day}${p.month}-${p.hour}${p.minute}-${Math.floor(100 + Math.random() * 900)}`;
+  const id = `DB-${p.day}${p.month}-${p.hour}${p.minute}-${crypto.randomBytes(3).toString('hex').toUpperCase().slice(0, 4)}`;
 
   return { errors, order: { id, name, phone, email, notes, lines, total, hasUnpriced, stamp } };
+}
+
+/* --- подпис на линковете за потвърждение --- */
+const DEV_SECRET = 'dev-only-secret-not-for-production';
+function orderSecret(env) {
+  if (env.ORDER_SECRET) return env.ORDER_SECRET;
+  if (env.RESEND_API_KEY) return null; // истински имейли без таен ключ — забранено
+  return DEV_SECRET;
+}
+function sign(id, secret) {
+  return crypto.createHmac('sha256', secret).update(String(id)).digest('hex').slice(0, 32);
+}
+function decisionLink(baseUrl, id, secret, action) {
+  return `${baseUrl}/api/decision?id=${encodeURIComponent(id)}&sig=${sign(id, secret)}&a=${action}`;
 }
 
 /* --- имейли --- */
@@ -119,13 +137,21 @@ function shell(title, inner) {
   </table></body></html>`;
 }
 
-function ownerEmail(o) {
+function btn(href, label, bg, color = '#ffffff') {
+  return `<a href="${esc(href)}" style="display:inline-block;padding:14px 26px;margin:6px 8px 6px 0;border-radius:999px;background:${bg};color:${color};font-weight:bold;font-size:16px;text-decoration:none">${label}</a>`;
+}
+
+function ownerEmail(o, links) {
   const html = shell(`Нова поръчка ${esc(o.id)}`, `
     <p style="margin:0 0 6px"><b>Име:</b> ${esc(o.name)}</p>
     <p style="margin:0 0 6px"><b>Телефон:</b> <a href="tel:${esc(o.phone.replace(/[^\d+]/g, ''))}" style="color:#ffc21a">${esc(o.phone)}</a></p>
     <p style="margin:0 0 6px"><b>Имейл:</b> <a href="mailto:${esc(o.email)}" style="color:#ffc21a">${esc(o.email)}</a></p>
     <p style="margin:0 0 6px"><b>Доставка:</b> ${D.ORDER.area}, до ${D.ORDER.deliveryMinutes} мин. · плащане ${D.ORDER.payment}</p>
-    <p style="margin:0 0 16px"><b>Приета:</b> ${esc(o.stamp)}</p>
+    <p style="margin:0 0 16px"><b>Получена:</b> ${esc(o.stamp)}</p>
+    ${links ? `<div style="margin:0 0 20px;padding:16px;background:#2a1a10;border:1px solid #ff5a1f;border-radius:12px">
+      <p style="margin:0 0 10px;font-size:16px"><b>Клиентът чака потвърждение.</b> Приемаш ли поръчката?</p>
+      ${btn(links.accept, '✅ Приемам', '#2e9e4f')}${btn(links.decline, '❌ Отказвам', '#c22d18')}
+    </div>` : ''}
     ${o.notes ? `<div style="margin:0 0 18px;padding:12px 14px;background:#2a1a10;border-left:3px solid #ffc21a;border-radius:6px"><b>Описание:</b><br>${esc(o.notes).replace(/\n/g, '<br>')}</div>` : ''}
     ${itemsTable(o)}`);
   const text = [
@@ -134,26 +160,66 @@ function ownerEmail(o) {
     o.notes ? `Описание: ${o.notes}` : '',
     '', ...o.lines.map((l) => `${l.qty} x ${l.name}${l.sizeLabel ? ` (${l.sizeLabel})` : ''}${l.options ? ` [${l.options}]` : ''} — ${l.sum == null ? 'цена при доставка' : fmt(l.sum)}`),
     '', `Общо: ${fmt(o.total)}`,
+    ...(links ? ['', `Приемам: ${links.accept}`, `Отказвам: ${links.decline}`] : []),
   ].filter((x) => x !== null).join('\n');
-  return { subject: `🔥 Нова поръчка ${o.id} · ${fmt(o.total)} · ${o.name}`, html, text };
+  return { subject: `Нова поръчка ${o.id} · ${fmt(o.total)} · ${o.name} — потвърди`, html, text };
 }
 
 function customerEmail(o) {
-  const html = shell('Поръчката ти е приета!', `
-    <p style="margin:0 0 12px">Здравей, ${esc(o.name.split(' ')[0])}! Шишът вече се върти за теб.</p>
-    <p style="margin:0 0 18px">Номер на поръчката: <b style="color:#ffc21a">${esc(o.id)}</b><br>
-      Доставка: <b>${D.ORDER.area}</b>, до <b>${D.ORDER.deliveryMinutes} минути</b>.<br>
+  return customerReceivedEmail(o);
+}
+
+/* Клиент: веднага след поръчката */
+function customerReceivedEmail(o) {
+  const html = shell('Получихме поръчката ти!', `
+    <p style="margin:0 0 12px">Здравей, ${esc(o.name.split(' ')[0])}! Поръчката ти е при нас.</p>
+    <p style="margin:0 0 18px">Номер: <b style="color:#ffc21a">${esc(o.id)}</b><br>
+      <b>Очаквай потвърждение по имейл до няколко минути.</b> След потвърждението доставяме до <b>${D.ORDER.deliveryMinutes} минути</b> в ${D.ORDER.area}.<br>
       Плащане: <b>${D.ORDER.payment}</b>.</p>
     ${itemsTable(o)}
-    ${o.notes ? `<p style="margin:18px 0 0;color:#b9a491"><b>Твоето описание:</b> ${esc(o.notes).replace(/\n/g, '<br>')}</p>` : ''}
+    ${o.notes ? `<p style="margin:18px 0 0;color:#b9a491"><b>Твоето описание:</b> ${esc(o.notes).replace(/\n/g, '<br>')}</p>` : ''}`);
+  const text = [
+    `Получихме поръчката ти! Номер: ${o.id}`,
+    'Очаквай потвърждение по имейл до няколко минути.',
+    '', ...o.lines.map(lineText), '', `Общо: ${fmt(o.total)}`,
+  ].join('\n');
+  return { subject: `Duner Box: получихме поръчка ${o.id}`, html, text };
+}
+
+/* Клиент: собственикът прие */
+function customerAcceptedEmail(o) {
+  const html = shell('Поръчката ти е приета! 🔥', `
+    <p style="margin:0 0 12px">Здравей, ${esc(o.name.split(' ')[0])}! Шишът вече се върти за теб.</p>
+    <p style="margin:0 0 18px">Номер: <b style="color:#ffc21a">${esc(o.id)}</b><br>
+      Доставка: <b>${D.ORDER.area}</b>, до <b>${D.ORDER.deliveryMinutes} минути</b>.<br>
+      Плащане: <b>${D.ORDER.payment}</b> — приготви <b>${fmt(o.total)}</b>.</p>
+    ${itemsTable(o)}
     <p style="margin:18px 0 0;color:#b9a491">Ако нещо не е наред, просто отговори на този имейл.</p>`);
   const text = [
     `Поръчката ти е приета! Номер: ${o.id}`,
     `Доставка: ${D.ORDER.area}, до ${D.ORDER.deliveryMinutes} минути. Плащане: ${D.ORDER.payment}.`,
-    '', ...o.lines.map((l) => `${l.qty} x ${l.name}${l.sizeLabel ? ` (${l.sizeLabel})` : ''}${l.options ? ` [${l.options}]` : ''} — ${l.sum == null ? 'цена при доставка' : fmt(l.sum)}`),
-    '', `Общо: ${fmt(o.total)}`,
+    '', ...o.lines.map(lineText), '', `Общо: ${fmt(o.total)}`,
   ].join('\n');
-  return { subject: `Duner Box: поръчка ${o.id} е приета`, html, text };
+  return { subject: `Duner Box: поръчка ${o.id} е приета — идва до ${D.ORDER.deliveryMinutes} мин.`, html, text };
+}
+
+/* Клиент: собственикът отказа */
+function customerDeclinedEmail(o, reason) {
+  const html = shell('Съжаляваме, поръчката не може да бъде изпълнена', `
+    <p style="margin:0 0 12px">Здравей, ${esc(o.name.split(' ')[0])}!</p>
+    <p style="margin:0 0 14px">За съжаление днес не можем да изпълним поръчка <b style="color:#ffc21a">${esc(o.id)}</b>.</p>
+    ${reason ? `<div style="margin:0 0 16px;padding:12px 14px;background:#2a1a10;border-left:3px solid #ffc21a;border-radius:6px"><b>Причина:</b> ${esc(reason).replace(/\n/g, '<br>')}</div>` : ''}
+    <p style="margin:0;color:#b9a491">Не е таксувано нищо. Ще се радваме да поръчаш отново или да минеш на бара на ул. Търговска 77.</p>`);
+  const text = [
+    `За съжаление не можем да изпълним поръчка ${o.id}.`,
+    reason ? `Причина: ${reason}` : '',
+    'Не е таксувано нищо. Ще се радваме да поръчаш отново.',
+  ].filter(Boolean).join('\n');
+  return { subject: `Duner Box: поръчка ${o.id} не може да бъде изпълнена`, html, text };
+}
+
+function lineText(l) {
+  return `${l.qty} x ${l.name}${l.sizeLabel ? ` (${l.sizeLabel})` : ''}${l.options ? ` [${l.options}]` : ''} — ${l.sum == null ? 'цена при доставка' : fmt(l.sum)}`;
 }
 
 async function sendEmail(env, fetchImpl, msg) {
@@ -167,7 +233,7 @@ async function sendEmail(env, fetchImpl, msg) {
 }
 
 /* --- основна логика (без HTTP), удобна за тестове --- */
-async function handleOrder(body, { now = new Date(), env = process.env, fetchImpl = globalThis.fetch, ip = '' } = {}) {
+async function handleOrder(body, { now = new Date(), env = process.env, fetchImpl = globalThis.fetch, ip = '', store, baseUrl = 'https://dunerbox.bg', recordedAt = now } = {}) {
   if (!body || typeof body !== 'object') return fail(400, 'bad_request', 'Невалидна заявка.');
   // капан за ботове: истинските клиенти не виждат това поле
   if (body.website) return { status: 200, json: { ok: true, orderId: 'DB-0000', total: 0 } };
@@ -176,13 +242,33 @@ async function handleOrder(body, { now = new Date(), env = process.env, fetchImp
   if (!win.open) {
     return fail(403, 'closed', `Поръчки се приемат само от 9:00 до 10:00 (пон–пет).`, { secondsToOpen: win.secondsToOpen });
   }
-  if (ip && rateLimited(ip, now.getTime())) return fail(429, 'rate_limited', 'Твърде много опити. Опитай пак след малко.');
+  // ограничение на заявките (изключено само за тестовия сървър с ALLOW_TEST_CLOCK)
+  if (ip && env.ALLOW_TEST_CLOCK !== '1' && rateLimited(ip, now.getTime())) return fail(429, 'rate_limited', 'Твърде много опити. Опитай пак след малко.');
 
   const { errors, order } = buildOrder(body, now);
   if (Object.keys(errors).length) return fail(422, 'invalid', 'Провери полетата.', { fields: errors });
 
-  const owner = ownerEmail(order);
-  const cust = customerEmail(order);
+  const secret = orderSecret(env);
+  if (!secret) {
+    console.error('[order] липсва ORDER_SECRET');
+    return fail(500, 'config', 'Поръчките временно не работят. Опитай по-късно.');
+  }
+  const links = {
+    accept: decisionLink(baseUrl, order.id, secret, 'accept'),
+    decline: decisionLink(baseUrl, order.id, secret, 'decline'),
+  };
+  if (store) {
+    try {
+      // recordedAt = истинският час (тестовият часовник служи само за прозореца 9–10)
+      await store.set(order.id, { ...order, status: 'pending', createdAt: recordedAt.toISOString() });
+    } catch (e) {
+      console.error('[order] store failed', e.message);
+      return fail(500, 'store_failed', 'Поръчката не можа да бъде записана. Опитай отново след минута.');
+    }
+  }
+
+  const owner = ownerEmail(order, links);
+  const cust = customerReceivedEmail(order);
   const from = env.RESEND_FROM || DEFAULT_FROM;
   const ownerTo = env.OWNER_EMAIL || DEFAULT_OWNER;
   const emails = [
@@ -192,7 +278,7 @@ async function handleOrder(body, { now = new Date(), env = process.env, fetchImp
 
   if (!env.RESEND_API_KEY) {
     console.log(`[order] ТЕСТОВ РЕЖИМ (няма RESEND_API_KEY) — ${order.id}, ${fmt(order.total)}\n${owner.text}`);
-    return { status: 200, json: { ok: true, orderId: order.id, total: order.total, dryRun: true }, emails };
+    return { status: 200, json: { ok: true, orderId: order.id, total: order.total, dryRun: true, pending: true }, emails, links };
   }
 
   try {
@@ -208,7 +294,7 @@ async function handleOrder(body, { now = new Date(), env = process.env, fetchImp
     customerEmailSent = false;
     console.error('[order] customer email failed', e.message);
   }
-  return { status: 200, json: { ok: true, orderId: order.id, total: order.total, customerEmailSent }, emails };
+  return { status: 200, json: { ok: true, orderId: order.id, total: order.total, customerEmailSent, pending: true }, emails };
 }
 
 /* --- HTTP обвивка (Vercel / Node http) --- */
@@ -252,10 +338,17 @@ async function handler(req, res) {
   if (env.ALLOW_TEST_CLOCK === '1' && req.headers['x-test-now']) now = new Date(req.headers['x-test-now']);
   const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
 
-  const result = await handleOrder(body, { now, env, ip });
+  const { fileStore } = require('./store.js');
+  const store = fileStore(require('path').join(__dirname, '..', '.data', 'orders'));
+  const baseUrl = `http://${req.headers.host}`;
+  const result = await handleOrder(body, { now, env, ip, store, baseUrl, recordedAt: new Date() });
   return send(res, result.status, result.json);
 }
 
 module.exports = handler;
 module.exports.handleOrder = handleOrder;
 module.exports.buildOrder = buildOrder;
+Object.assign(module.exports, {
+  sign, orderSecret, sendEmail, shell, itemsTable, esc, fmt, DEFAULT_FROM, DEFAULT_OWNER,
+  customerAcceptedEmail, customerDeclinedEmail,
+});

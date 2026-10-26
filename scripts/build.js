@@ -4,7 +4,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'dist');
-const PUBLIC = ['index.html', 'styles.css', 'script.js', 'menu-data.js', 'assets'];
+const PUBLIC = ['index.html', 'styles.css', 'script.js', 'menu-data.js', 'assets', 'robots.txt', 'sitemap.xml'];
 
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT);

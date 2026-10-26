@@ -4,6 +4,7 @@
  * Настройки (Site settings → Environment variables): RESEND_API_KEY, RESEND_FROM, OWNER_EMAIL.
  */
 const { handleOrder } = require('../../api/order.js');
+const { netlifyStore } = require('../../api/store.js');
 
 const json = (statusCode, body) => ({
   statusCode,
@@ -27,6 +28,9 @@ exports.handler = async (event) => {
   let now = new Date();
   const fake = event.headers['x-test-now'];
   if (process.env.ALLOW_TEST_CLOCK === '1' && fake && !Number.isNaN(Date.parse(fake))) now = new Date(fake);
-  const result = await handleOrder(body, { now, env: process.env, ip });
+  const proto = event.headers['x-forwarded-proto'] || 'https';
+  const baseUrl = `${proto}://${event.headers.host}`;
+  const store = netlifyStore(event);
+  const result = await handleOrder(body, { now, env: process.env, ip, store, baseUrl, recordedAt: new Date() });
   return json(result.status, result.json);
 };

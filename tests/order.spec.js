@@ -247,7 +247,7 @@ test.describe('Поръчки за АЕЦ', () => {
     await page.locator('[data-submit]').click();
 
     await expect(page.locator('[data-done]')).toBeVisible();
-    await expect(page.locator('[data-done-id]')).toHaveText(/^DB-1210-0930-\d{3}$/);
+    await expect(page.locator('[data-done-id]')).toHaveText(/^DB-1210-0930-[0-9A-F]{4}$/);
     await expect(page.locator('[data-order-form]')).toBeHidden();
     await expect(page.locator('[data-cart-empty]')).toBeVisible();
 
