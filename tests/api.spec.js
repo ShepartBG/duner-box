@@ -3,7 +3,6 @@ const { test, expect } = require('@playwright/test');
 const { handleOrder } = require('../api/order.js');
 const D = require('../menu-data.js');
 
-test.beforeEach(({}, testInfo) => { test.skip(testInfo.project.name !== 'desktop', 'еднократно, не зависи от устройството'); });
 
 const OPEN = new Date('2026-10-12T09:15:00+03:00');   // понеделник 9:15
 const CLOSED = new Date('2026-10-12T10:00:00+03:00'); // понеделник 10:00 — вече затворено

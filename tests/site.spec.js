@@ -332,8 +332,7 @@ test.describe('Duner Box', () => {
 });
 
 test.describe('мобилна навигация', () => {
-  test('бургер менюто се отваря и затваря', async ({ page }, testInfo) => {
-    test.skip(!isMobile(testInfo), 'само за телефон');
+  test('бургер менюто се отваря и затваря @mobile', async ({ page }) => {
     await page.goto('/');
     const burger = page.locator('.burger');
     await burger.click();
@@ -346,8 +345,7 @@ test.describe('мобилна навигация', () => {
     await expect(burger).toHaveAttribute('aria-expanded', 'false');
   });
 
-  test('на компютър бургерът е скрит, а линковете видими', async ({ page }, testInfo) => {
-    test.skip(isMobile(testInfo), 'само за компютър');
+  test('на компютър бургерът е скрит, а линковете видими @desktop', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.burger')).toBeHidden();
     for (const t of ['Най-добрите', 'Меню', 'За нас', 'Работно време', 'Контакти', 'Поръчай за АЕЦ']) {

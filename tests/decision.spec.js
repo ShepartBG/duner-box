@@ -4,7 +4,6 @@ const { handleOrder, sign } = require('../api/order.js');
 const { handleDecision } = require('../api/decision.js');
 const { memoryStore } = require('../api/store.js');
 
-test.beforeEach(({}, testInfo) => { test.skip(testInfo.project.name !== 'desktop', 'еднократно, не зависи от устройството'); });
 
 const ENV = { RESEND_API_KEY: 're_test', RESEND_FROM: 'Duner Box <poruchki@dunerbox.bg>', OWNER_EMAIL: 'jeki.1997@abv.bg', ORDER_SECRET: 'test-secret' };
 const OPEN = new Date('2026-10-12T09:15:00+03:00');

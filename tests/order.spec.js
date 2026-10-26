@@ -276,8 +276,7 @@ test.describe('Поръчки за АЕЦ', () => {
     await expect(page.locator('[data-done]')).toBeHidden();
   });
 
-  test('плаващата количка се показва на телефон', async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== 'mobile', 'само за телефон');
+  test('плаващата количка се показва на телефон @mobile', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('[data-fab]')).toBeHidden();
     await page.locator('[data-hits] [data-add]').first().click();

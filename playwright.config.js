@@ -10,8 +10,11 @@ module.exports = defineConfig({
     locale: 'bg-BG',
   },
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
-    { name: 'mobile', use: { ...devices['Pixel 7'] } },
+    // сайтът — на компютър и на телефон
+    { name: 'desktop', testIgnore: /(api|decision)\.spec\.js/, grepInvert: /@mobile/, use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
+    { name: 'mobile', testIgnore: /(api|decision)\.spec\.js/, grepInvert: /@desktop/, use: { ...devices['Pixel 7'] } },
+    // сървърът (поръчки, имейли, одобрение) — не зависи от устройството, пуска се веднъж
+    { name: 'api', testMatch: /(api|decision)\.spec\.js/, use: { ...devices['Desktop Chrome'] } },
   ],
   webServer: {
     command: 'node server.js',
