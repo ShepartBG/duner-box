@@ -1,7 +1,7 @@
 /* ===== Duner Box — script =====
  * Менюто, цените и правилата за поръчка са в menu-data.js (window.DUNER).
  */
-const { CATEGORIES, MENU, HOURS, ORDER, DAY_NAMES, sofiaNow, orderWindow, round2 } = window.DUNER;
+const { CATEGORIES, MENU, HOURS, ORDER, DAY_NAMES, sofiaNow, orderWindow, round2, sizeLabels } = window.DUNER;
 
 const IMG = (name) => `assets/img/${name}.webp`;
 const eur = (n) => `${n.toFixed(2).replace('.', ',')} €`;
@@ -96,9 +96,10 @@ function row(m, c) {
       <div class="row__name">
         <h4>${m.name}${m.tag ? `<span class="row__tag">${m.tag}</span>` : ''}</h4>
         ${m.desc ? `<p>${m.desc}</p>` : ''}
+        ${m.flavors ? `<p class="row__flavors">${m.flavors.join(' · ')}</p>` : ''}
       </div>
       <div class="row__prices">
-        ${m.prices.map((p, i) => `<span class="pr">${multi ? `<i>${c.sizes[i]}</i>` : ''}<b>${priceHtml(p)}</b></span>`).join('')}
+        ${m.prices.map((p, i) => `<span class="pr">${multi ? `<i>${sizeLabels(m)[i]}</i>` : ''}<b>${priceHtml(p)}</b></span>`).join('')}
       </div>
     </div>`;
 }
@@ -137,7 +138,7 @@ document.addEventListener('click', (e) => {
 /* ======================================================================
  * Поръчки за вкъщи
  * ==================================================================== */
-const cart = { lines: store.get('db-cart', []) }; // [{id, size, qty}]
+const cart = { lines: store.get('db-cart', []) }; // [{id, size, flavor?, qty}]
 let windowState = orderWindow();
 let sending = false;
 
@@ -148,7 +149,6 @@ function renderShop() {
   tabs.innerHTML = CATEGORIES.map((c, i) => `
     <button class="chip" type="button" role="tab" id="shop-tab-${c.id}" data-shop-cat="${c.id}" aria-selected="${i === 0}">${c.label}</button>`).join('');
   grid.innerHTML = MENU.map((m) => {
-    const c = catOf(m.cat);
     const multi = m.prices.length > 1;
     return `
     <article class="product" data-product="${m.id}" data-cat="${m.cat}">
@@ -157,8 +157,11 @@ function renderShop() {
         <h4>${m.name}</h4>
         ${m.desc ? `<p>${m.desc}</p>` : ''}
         ${multi ? `<div class="sizes" role="radiogroup" aria-label="Размер за ${m.name}">
-          ${m.prices.map((p, i) => `<button type="button" class="size" role="radio" aria-checked="${i === 0}" data-size-pick="${i}">${c.sizes[i]} · ${eur(p)}</button>`).join('')}
+          ${m.prices.map((p, i) => `<button type="button" class="size" role="radio" aria-checked="${i === 0}" data-size-pick="${i}">${sizeLabels(m)[i]} · ${eur(p)}</button>`).join('')}
         </div>` : ''}
+        ${m.flavors ? `<label class="flavor"><span>Вкус</span><select data-flavor aria-label="Вкус за ${m.name}">
+          ${m.flavors.map((f) => `<option value="${f}">${f}</option>`).join('')}
+        </select></label>` : ''}
         <div class="product__foot">
           <span class="product__price" data-product-price>${priceHtml(m.prices[0])}</span>
           <button class="btn btn--fire btn--sm" type="button" data-add="${m.id}" data-size="0" aria-label="Добави ${m.name}">+ Добави</button>
@@ -197,27 +200,32 @@ function setShopCategory(cat) {
 /* --- количка --- */
 function lineLabel(l) {
   const m = itemOf(l.id);
-  const c = catOf(m.cat);
-  return m.prices.length > 1 ? `${m.name} (${c.sizes[l.size]})` : m.name;
+  const extra = [m.prices.length > 1 ? sizeLabels(m)[l.size] : '', l.flavor || ''].filter(Boolean).join(', ');
+  return extra ? `${m.name} (${extra})` : m.name;
 }
 const linePrice = (l) => itemOf(l.id).prices[l.size];
 
-function addToCart(id, size, fromEl) {
+function addToCart(id, size, flavor, fromEl) {
   const m = itemOf(id);
   if (!m) return;
-  const ex = cart.lines.find((l) => l.id === id && l.size === size);
+  if (m.flavors && !m.flavors.includes(flavor)) flavor = m.flavors[0];
+  if (!m.flavors) flavor = undefined;
+  const ex = cart.lines.find((l) => l.id === id && l.size === size && l.flavor === flavor);
   if (ex) ex.qty = Math.min(ORDER.maxQty, ex.qty + 1);
-  else cart.lines.push({ id, size, qty: 1 });
+  else cart.lines.push(flavor ? { id, size, flavor, qty: 1 } : { id, size, qty: 1 });
   saveCart();
   renderCart();
-  toast(`🔥 ${lineLabel({ id, size })} е в количката`);
+  toast(`🔥 ${lineLabel({ id, size, flavor })} е в количката`);
   if (fromEl) sparkBurst(fromEl);
   const fab = $('[data-fab]');
   if (fab) { fab.classList.remove('bump'); void fab.offsetWidth; fab.classList.add('bump'); }
 }
 
 function saveCart() {
-  cart.lines = cart.lines.filter((l) => itemOf(l.id) && l.qty > 0);
+  cart.lines = cart.lines.filter((l) => {
+    const m = itemOf(l.id);
+    return m && l.qty > 0 && l.size < m.prices.length && (!m.flavors || m.flavors.includes(l.flavor));
+  });
   store.set('db-cart', cart.lines);
 }
 
@@ -263,6 +271,7 @@ function renderCart() {
 }
 
 function initCart() {
+  saveCart();
   $('[data-cart-list]')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-qty]');
     if (!b) return;
@@ -275,7 +284,9 @@ function initCart() {
   $('[data-cart-clear]')?.addEventListener('click', () => { cart.lines = []; saveCart(); renderCart(); });
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-add]');
-    if (b) addToCart(b.dataset.add, Number(b.dataset.size || 0), b);
+    if (!b) return;
+    const sel = b.closest('[data-product]')?.querySelector('[data-flavor]');
+    addToCart(b.dataset.add, Number(b.dataset.size || 0), sel ? sel.value : undefined, b);
   });
   renderCart();
 }
@@ -324,7 +335,7 @@ function initForm() {
       name: String(fd.get('name') || ''), phone: String(fd.get('phone') || ''),
       email: String(fd.get('email') || ''), notes: String(fd.get('notes') || ''),
       website: String(fd.get('website') || ''), consent: fd.get('consent') === 'on',
-      items: cart.lines.map((l) => ({ id: l.id, size: l.size, qty: l.qty })),
+      items: cart.lines.map((l) => (l.flavor ? { id: l.id, size: l.size, flavor: l.flavor, qty: l.qty } : { id: l.id, size: l.size, qty: l.qty })),
     };
     const errs = validate(data);
     setErrors(errs);

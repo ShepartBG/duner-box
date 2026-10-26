@@ -42,7 +42,7 @@ test('screenshots: отворени поръчки с пълна количка'
   await page.locator('#shop-tab-box').click();
   await page.locator('[data-product="box-large"] [data-add]').click();
   await page.locator('#shop-tab-drinks').click();
-  await page.locator('[data-product="drink-cola"] [data-add]').click();
+  await page.locator('[data-product="drink-queens"] [data-add]').click();
   await page.fill('#f-name', 'Иван Петров');
   await page.fill('#f-phone', '0888 123 456');
   await page.fill('#f-email', 'ivan@example.com');

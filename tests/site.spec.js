@@ -222,7 +222,7 @@ test.describe('Duner Box', () => {
 
   test('меню: всички табове филтрират правилно', async ({ page }) => {
     await page.goto('/');
-    const expected = { all: 31, duner: 4, box: 2, sandwich: 6, pocket: 2, burger: 2, salad: 3, sides: 3, extras: 5, drinks: 4 };
+    const expected = { all: 47, duner: 4, box: 2, sandwich: 6, pocket: 2, burger: 2, salad: 3, sides: 3, extras: 11, drinks: 14 };
     await expect(page.locator('[data-tabs] .tab')).toHaveCount(10);
     for (const [cat, count] of Object.entries(expected)) {
       await page.locator(`#tab-${cat}`).click();
@@ -263,12 +263,36 @@ test.describe('Duner Box', () => {
     await expect(page.locator('[data-board="sandwich"] .board__sub')).toHaveText('малък 330 гр. · голям 480 гр.');
   });
 
-  test('меню: добавки и напитки са изписани, без цена засега', async ({ page }) => {
+  test('меню: всички добавки са изписани, без цена засега', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('[data-board="extras"] h4')).toHaveText(['Телешко кюфте', 'Бекон', 'Кашкавал', 'Яйце', 'Топено сирене']);
-    await expect(page.locator('[data-board="drinks"] h4')).toHaveText(['Coca-Cola', 'Coca-Cola Zero', 'Студен чай', 'Вода']);
-    await expect(page.locator('[data-board="drinks"] .soon')).toHaveCount(4);
-    await expect(page.locator('[data-board="sides"] h4')).toHaveText(['Картофки', 'Ориз', 'Месо']);
+    await expect(page.locator('[data-board="extras"] h4')).toHaveText([
+      'Телешко кюфте', 'Бекон', 'Луканка', 'Шунка', 'Кашкавал', 'Чедър', 'Топено сирене', 'Яйце', 'Питка', 'Ориз', 'Картофи']);
+    await expect(page.locator('[data-board="extras"] .soon')).toHaveCount(11);
+    await expect(page.locator('[data-item="extra-kofte"]')).toContainText('150 гр.');
+    await expect(page.locator('[data-item="extra-pita"]')).toContainText('1 бр.');
+    await expect(page.locator('[data-board="sides"] h4')).toHaveText(['Картофки', 'Ориз', 'Допълнително месо']);
+  });
+
+  test('меню: напитките са с цени и всички вкусове', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('[data-board="drinks"] .soon')).toHaveCount(0);
+    const check = async (id, texts) => {
+      for (const t of texts) await expect(page.locator(`[data-item="${id}"]`)).toContainText(t);
+    };
+    await check('drink-cola', ['Coca-Cola', '1,50 €']);
+    await check('drink-zero', ['Coca-Cola Zero', '1,50 €']);
+    await check('drink-queens', ['кайсия', 'драконов плод', 'къпина', '1,50 €']);
+    await check('drink-hell', ['класик', 'розова гуава', 'зеро']);
+    await check('drink-tea', ['лимон', 'горски плодове']);
+    await check('drink-icecoffee', ['Pink Latte', 'двойно еспресо']);
+    await check('drink-velingrad', ['0,5 л', '0,50 €', '1,5 л', '1,00 €']);
+    await check('drink-water', ['Горна баня', '0,50 €', '1,00 €']);
+    await check('drink-velingrad-flavor', ['праскова', 'ягода', 'лимон', '1,50 €']);
+    await check('drink-ayran', ['Айрян', '1,50 €']);
+    await check('drink-isosport', ['Изо спорт', '1,50 €']);
+    const flavors = await page.$$eval('[data-board="drinks"] .row__flavors', (ps) => ps.reduce((n, p) => n + p.textContent.split(' · ').length, 0));
+    const plain = await page.$$eval('[data-board="drinks"] .row:not(:has(.row__flavors)) .pr', (prs) => prs.length);
+    expect(flavors + plain).toBe(51); // всички 51 напитки от ценоразписа
   });
 
   test('меню: табовете работят и със стрелки', async ({ page }) => {
@@ -331,7 +355,7 @@ test('всяка позиция в менюто има собствена, ун�
   await page.goto('/');
   const rows = page.locator('[data-menu] .row');
   const n = await rows.count();
-  expect(n).toBe(31);
+  expect(n).toBe(47);
   const srcs = [];
   for (let i = 0; i < n; i++) {
     const id = await rows.nth(i).getAttribute('data-item');
@@ -342,5 +366,5 @@ test('всяка позиция в менюто има собствена, ун�
   }
   expect(new Set(srcs).size).toBe(n);
   const shop = await page.$$eval('[data-product] .product__img', (imgs) => imgs.map((i) => i.getAttribute('src')));
-  expect(new Set(shop).size).toBe(31);
+  expect(new Set(shop).size).toBe(47);
 });

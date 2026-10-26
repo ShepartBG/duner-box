@@ -4,8 +4,9 @@
  * така че цените са на едно място. Редактирай тук.
  *
  * Снимка: assets/img/items/<id>.webp — по една за всяка позиция.
- * price: цена в евро; null = „цена скоро“ (позицията се показва, а при поръчка
- *        цената се уточнява при доставката).
+ * prices:  цени в евро; null = „цена скоро“ (при поръчка цената се уточнява при доставката).
+ *          Няколко цени = няколко размера; имената им са в labels (или sizes на категорията).
+ * flavors: списък с вкусове на една и съща цена — клиентът избира един при поръчка.
  */
 (function (root) {
   const CATEGORIES = [
@@ -20,9 +21,9 @@
     { id: 'salad', label: 'Салати' },
     { id: 'sides', label: 'Гарнитури', sub: 'по 100 гр.' },
     { id: 'extras', label: 'Добавки', compact: true,
-      note: 'Сложи отгоре на каквото си избрал. Цените са на бара.' },
+      note: 'Сложи отгоре на каквото си избрал. Цените ще ги видиш на бара.' },
     { id: 'drinks', label: 'Напитки',
-      note: 'Студени, направо от хладилника. Цените са на бара.' },
+      note: 'Студени, направо от хладилника. Избери си вкуса.' },
   ];
 
   const MENU = [
@@ -79,20 +80,44 @@
     // Гарнитури — по 100 гр.
     { id: 'side-fries', cat: 'sides', name: 'Картофки', desc: '100 гр.', prices: [2.5] },
     { id: 'side-rice', cat: 'sides', name: 'Ориз', desc: '100 гр.', prices: [2.0] },
-    { id: 'side-meat', cat: 'sides', name: 'Месо', desc: '100 гр. дюнер месо', prices: [3.0] },
+    { id: 'side-meat', cat: 'sides', name: 'Допълнително месо', desc: '100 гр. дюнер месо', prices: [3.0] },
 
     // Добавки — цените предстоят
-    { id: 'extra-kofte', cat: 'extras', name: 'Телешко кюфте', prices: [null] },
-    { id: 'extra-bacon', cat: 'extras', name: 'Бекон', prices: [null] },
-    { id: 'extra-cheese', cat: 'extras', name: 'Кашкавал', prices: [null] },
-    { id: 'extra-egg', cat: 'extras', name: 'Яйце', prices: [null] },
+    { id: 'extra-kofte', cat: 'extras', name: 'Телешко кюфте', desc: '150 гр.', prices: [null] },
+    { id: 'extra-bacon', cat: 'extras', name: 'Бекон', desc: '50 гр.', prices: [null] },
+    { id: 'extra-lukanka', cat: 'extras', name: 'Луканка', desc: '50 гр.', prices: [null] },
+    { id: 'extra-ham', cat: 'extras', name: 'Шунка', desc: '50 гр.', prices: [null] },
+    { id: 'extra-cheese', cat: 'extras', name: 'Кашкавал', desc: '50 гр.', prices: [null] },
+    { id: 'extra-cheddar', cat: 'extras', name: 'Чедър', desc: '50 гр.', prices: [null] },
     { id: 'extra-melted', cat: 'extras', name: 'Топено сирене', prices: [null] },
+    { id: 'extra-egg', cat: 'extras', name: 'Яйце', desc: '1 бр.', prices: [null] },
+    { id: 'extra-pita', cat: 'extras', name: 'Питка', desc: '1 бр.', prices: [null] },
+    { id: 'extra-rice', cat: 'extras', name: 'Ориз', desc: '50 гр.', prices: [null] },
+    { id: 'extra-fries', cat: 'extras', name: 'Картофи', desc: '50 гр.', prices: [null] },
 
-    // Напитки — цените предстоят
-    { id: 'drink-cola', cat: 'drinks', name: 'Coca-Cola', prices: [null] },
-    { id: 'drink-zero', cat: 'drinks', name: 'Coca-Cola Zero', prices: [null] },
-    { id: 'drink-tea', cat: 'drinks', name: 'Студен чай', prices: [null] },
-    { id: 'drink-water', cat: 'drinks', name: 'Вода', prices: [null] },
+    // Напитки
+    { id: 'drink-cola', cat: 'drinks', name: 'Coca-Cola', desc: 'Кен.', prices: [1.5] },
+    { id: 'drink-zero', cat: 'drinks', name: 'Coca-Cola Zero', desc: 'Кен.', prices: [1.5] },
+    { id: 'drink-tea', cat: 'drinks', name: 'Студен чай Nestea', prices: [1.5],
+      flavors: ['лимон', 'праскова', 'манго', 'горски плодове'] },
+    { id: 'drink-fizzy', cat: 'drinks', name: 'Физи', prices: [1.5],
+      flavors: ['ягода и ябълка', 'ананас и манго', 'тути фрути', 'портокал и манго'] },
+    { id: 'drink-queens', cat: 'drinks', name: 'Куинс', prices: [1.5],
+      flavors: ['кайсия', 'портокал', 'банан', 'праскова', 'ябълка', 'банан и ягода', 'малина', 'манго', 'боровинка', 'къпина', 'драконов плод'] },
+    { id: 'drink-drvit', cat: 'drinks', name: 'Др. Вит', prices: [1.5],
+      flavors: ['ягода', 'нар и асаи', 'черна боровинка и хибискус', 'праскова'] },
+    { id: 'drink-hiho', cat: 'drinks', name: 'Хихо', prices: [1.5],
+      flavors: ['праскова', 'тути фрути', 'ягода', 'круша', 'боровинка'] },
+    { id: 'drink-hell', cat: 'drinks', name: 'Хел', desc: 'Енергийна напитка.', prices: [1.5],
+      flavors: ['класик', 'зеро', 'ябълка', 'зелена ябълка', 'диня', 'червено грозде', 'черна череша', 'розова гуава'] },
+    { id: 'drink-icecoffee', cat: 'drinks', name: 'Айс кафе', prices: [1.5],
+      flavors: ['Pink Latte', 'капучино', 'лате', 'двойно еспресо'] },
+    { id: 'drink-isosport', cat: 'drinks', name: 'Изо спорт', prices: [1.5] },
+    { id: 'drink-ayran', cat: 'drinks', name: 'Айрян Мегле', prices: [1.5] },
+    { id: 'drink-velingrad', cat: 'drinks', name: 'Велинград', desc: 'Минерална вода.', prices: [0.5, 1.0], labels: ['0,5 л', '1,5 л'] },
+    { id: 'drink-velingrad-flavor', cat: 'drinks', name: 'Велинград с вкус', desc: '0,5 л.', prices: [1.5],
+      flavors: ['праскова', 'ягода', 'лимон'] },
+    { id: 'drink-water', cat: 'drinks', name: 'Горна баня', desc: 'Минерална вода.', prices: [0.5, 1.0], labels: ['0,5 л', '1,5 л'] },
   ];
 
   /* Работно време на обекта: 0 = неделя ... 6 = събота; [отваря, затваря] в минути */
@@ -155,7 +180,14 @@
     return item.prices[i];
   }
 
-  const data = { CATEGORIES, MENU, HOURS, ORDER, TZ, DAY_NAMES, sofiaNow, orderWindow, priceOf, round2 };
+  /* Имената на размерите на позиция (labels на позицията или sizes на категорията) */
+  function sizeLabels(item) {
+    if (item.labels) return item.labels;
+    const cat = CATEGORIES.find((c) => c.id === item.cat);
+    return (cat && cat.sizes) || [];
+  }
+
+  const data = { CATEGORIES, MENU, HOURS, ORDER, TZ, DAY_NAMES, sofiaNow, orderWindow, priceOf, round2, sizeLabels };
   if (typeof module !== 'undefined' && module.exports) module.exports = data;
   else root.DUNER = data;
 })(typeof window !== 'undefined' ? window : globalThis);

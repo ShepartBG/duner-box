@@ -57,12 +57,13 @@ function buildOrder(body, now) {
     const item = D.MENU.find((m) => m.id === r.id);
     const size = Number.isInteger(r.size) ? r.size : 0;
     const qty = Number(r.qty);
-    if (!item || size < 0 || size >= item.prices.length || !Number.isInteger(qty) || qty < 1 || qty > D.ORDER.maxQty) {
+    const flavor = item && item.flavors ? r.flavor : undefined;
+    if (!item || size < 0 || size >= item.prices.length || !Number.isInteger(qty) || qty < 1 || qty > D.ORDER.maxQty
+      || (item.flavors && !item.flavors.includes(flavor))) {
       errors.items = 'Невалидна позиция в количката.';
       continue;
     }
-    const cat = D.CATEGORIES.find((c) => c.id === item.cat);
-    const sizeLabel = item.prices.length > 1 && cat.sizes ? cat.sizes[size] : '';
+    const sizeLabel = [item.prices.length > 1 ? D.sizeLabels(item)[size] : '', flavor || ''].filter(Boolean).join(', ');
     const price = item.prices[size];
     lines.push({
       id: item.id, name: item.name, sizeLabel, qty,

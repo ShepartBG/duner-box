@@ -10,7 +10,7 @@ const SAT = new Date('2026-10-17T09:30:00+03:00');    // събота 9:30
 
 const good = (over = {}) => ({
   name: 'Мария Иванова', phone: '+359 888 123 456', email: 'maria@example.com', notes: 'Корпус 3', consent: true,
-  items: [{ id: 'sand-tarikatski', size: 1, qty: 2 }, { id: 'side-fries', size: 0, qty: 1 }, { id: 'drink-water', size: 0, qty: 1 }],
+  items: [{ id: 'sand-tarikatski', size: 1, qty: 2 }, { id: 'side-fries', size: 0, qty: 1 }, { id: 'extra-egg', size: 0, qty: 1 }, { id: 'drink-hell', size: 0, flavor: 'черна череша', qty: 2 }],
   ...over,
 });
 
@@ -32,7 +32,7 @@ test('изпраща 2 имейла: към собственика и към к�
   const r = await handleOrder(good(), { now: OPEN, env: ENV, fetchImpl, ip: '1.1.1.1' });
   expect(r.status).toBe(200);
   expect(r.json.ok).toBe(true);
-  expect(r.json.total).toBe(14.5); // 2 × 6,00 + 2,50; водата е без цена
+  expect(r.json.total).toBe(17.5); // 2 × 6,00 + 2,50 + 2 × 1,50; яйцето е без цена
   expect(sent).toHaveLength(2);
   expect(sent.every((s) => s.url === 'https://api.resend.com/emails' && s.auth === 'Bearer re_test')).toBe(true);
 
@@ -41,7 +41,9 @@ test('изпраща 2 имейла: към собственика и към к�
   expect(owner.reply_to).toBe('maria@example.com');
   expect(owner.from).toBe('Duner Box <poruchki@dunerbox.bg>');
   expect(owner.subject).toContain('Нова поръчка');
-  expect(owner.subject).toContain('14,50 €');
+  expect(owner.subject).toContain('17,50 €');
+  expect(owner.html).toContain('2 × Хел');
+  expect(owner.html).toContain('черна череша');
   expect(owner.html).toContain('Мария Иванова');
   expect(owner.html).toContain('+359 888 123 456');
   expect(owner.html).toContain('Корпус 3');
@@ -89,6 +91,8 @@ test('отказва празна количка, непознати позиц�
     [{ id: 'duner-small', size: 3, qty: 1 }],
     [{ id: 'duner-small', size: 0, qty: 0 }],
     [{ id: 'duner-small', size: 0, qty: 99 }],
+    [{ id: 'drink-hell', size: 0, qty: 1 }],
+    [{ id: 'drink-hell', size: 0, flavor: 'бира', qty: 1 }],
   ];
   for (const [i, items] of cases.entries()) {
     const { fetchImpl } = fakeResend();

@@ -544,3 +544,9 @@ p{margin:0 0 1em}
 .hit[data-hit="sand-royal"] .hit__media img{object-position:50% 12%}
 .product__img,.row__img{background:radial-gradient(circle at 50% 75%,rgba(255,120,30,.45),transparent 70%),#1f1009}
 .product__img{aspect-ratio:4/3;height:auto}
+.row__flavors{color:var(--ember)!important;font-size:.8rem!important}
+.flavor{display:flex;flex-direction:column;gap:4px}
+.flavor span{font-family:var(--font-m);font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.flavor select{width:100%;font:inherit;font-size:16px;color:var(--text);background:rgba(0,0,0,.45);border:1px solid var(--line2);border-radius:10px;padding:8px 10px;cursor:pointer}
+.flavor select:focus{outline:none;border-color:var(--gold)}
+@media (max-width:600px){.flavor select{font-size:16px;padding:7px 8px}}

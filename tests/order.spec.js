@@ -82,7 +82,8 @@ test.describe('Поръчки за АЕЦ', () => {
     await expect(sand.locator('[data-product-price]')).toHaveText('6,00 €');
     await sand.locator('[data-add]').click();
     await page.locator('#shop-tab-drinks').click();
-    await page.locator('[data-product="drink-cola"] [data-add]').click();
+    await page.locator('#shop-tab-extras').click();
+    await page.locator('[data-product="extra-egg"] [data-add]').click();
 
     const lines = page.locator('[data-cart-list] .cart__line');
     await expect(lines).toHaveCount(3);
@@ -103,6 +104,28 @@ test.describe('Поръчки за АЕЦ', () => {
     await expect(page.locator('[data-cart-list] .cart__line')).toHaveCount(2);
     await page.locator('[data-cart-clear]').click();
     await expect(page.locator('[data-cart-empty]')).toBeVisible();
+  });
+
+  test('напитки: избор на вкус и размер, отделни редове в количката', async ({ page }) => {
+    await page.clock.setFixedTime(AT('09:30'));
+    await page.goto('/');
+    await page.locator('#shop-tab-drinks').click();
+    const q = page.locator('[data-product="drink-queens"]');
+    await q.locator('[data-flavor]').selectOption('малина');
+    await q.locator('[data-add]').click();
+    await q.locator('[data-flavor]').selectOption('манго');
+    await q.locator('[data-add]').click();
+    await q.locator('[data-add]').click();
+    const v = page.locator('[data-product="drink-velingrad"]');
+    await v.locator('[data-size-pick="1"]').click();
+    await v.locator('[data-add]').click();
+    const lines = page.locator('[data-cart-list] .cart__line');
+    await expect(lines).toHaveCount(3);
+    await expect(lines.nth(0)).toContainText('Куинс (малина)');
+    await expect(lines.nth(1)).toContainText('Куинс (манго)');
+    await expect(lines.nth(1).locator('[data-qty-val]')).toHaveText('2');
+    await expect(lines.nth(2)).toContainText('Велинград (1,5 л)');
+    await expect(page.locator('[data-cart-total]')).toHaveText('5,50 €');
   });
 
   test('извън 9:00–10:00 бутонът за изпращане е заключен', async ({ page }) => {
@@ -142,9 +165,12 @@ test.describe('Поръчки за АЕЦ', () => {
     await page.locator('[data-product="duner-royal"] [data-add]').click();
     await page.locator('#shop-tab-box').click();
     await page.locator('[data-product="box-large"] [data-add]').click();
+    await page.locator('#shop-tab-drinks').click();
+    await page.locator('[data-product="drink-hell"] [data-flavor]').selectOption('диня');
+    await page.locator('[data-product="drink-hell"] [data-add]').click();
     await fillForm(page);
     await expect(page.locator('[data-submit]')).toBeEnabled();
-    await expect(page.locator('[data-submit-total]')).toHaveText('· 14,00 €');
+    await expect(page.locator('[data-submit-total]')).toHaveText('· 15,50 €');
     await page.locator('[data-submit]').click();
 
     await expect(page.locator('[data-done]')).toBeVisible();
@@ -155,7 +181,7 @@ test.describe('Поръчки за АЕЦ', () => {
     expect(bodies).toHaveLength(1);
     expect(bodies[0]).toMatchObject({
       name: 'Иван Петров', phone: '0888 123 456', email: 'ivan@example.com', notes: 'Сграда 2, без лук', consent: true,
-      items: [{ id: 'duner-royal', size: 0, qty: 1 }, { id: 'box-large', size: 0, qty: 1 }],
+      items: [{ id: 'duner-royal', size: 0, qty: 1 }, { id: 'box-large', size: 0, qty: 1 }, { id: 'drink-hell', size: 0, flavor: 'диня', qty: 1 }],
     });
 
     await page.locator('[data-new-order]').click();
