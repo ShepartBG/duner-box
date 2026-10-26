@@ -162,3 +162,22 @@ test('.env и скриптовете не се сервират', async ({ reque
     expect((await request.get(p)).status(), p).toBe(403);
   }
 });
+
+test('Netlify обвивката връща същите отговори', async () => {
+  const { handler } = require('../netlify/functions/order.js');
+  const old = process.env.RESEND_API_KEY;
+  process.env.RESEND_API_KEY = ''; // без истински имейли
+  try {
+    expect((await handler({ httpMethod: 'GET', headers: {} })).statusCode).toBe(405);
+    expect((await handler({ httpMethod: 'POST', headers: {}, body: '{нещо' })).statusCode).toBe(400);
+    const r = await handler({ httpMethod: 'POST', headers: { 'x-nf-client-connection-ip': '7.7.7.7' }, body: JSON.stringify(good()) });
+    // реалният час решава: в 9:00–10:00 (пон–пет) е 200, иначе 403 „closed“
+    expect([200, 403]).toContain(r.statusCode);
+    expect(r.headers['Content-Type']).toContain('application/json');
+    const j = JSON.parse(r.body);
+    if (r.statusCode === 403) expect(j.error).toBe('closed');
+    else expect(j.dryRun).toBe(true);
+  } finally {
+    process.env.RESEND_API_KEY = old;
+  }
+});

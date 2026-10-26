@@ -5,3 +5,5 @@ screenshots/
 photos/
 .env
 .vercel/
+dist/
+.netlify/
