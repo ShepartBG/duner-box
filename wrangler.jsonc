@@ -13,7 +13,10 @@
     "run_worker_first": true
   },
   "kv_namespaces": [{ "binding": "ORDERS", "id": "da53dcf62fad4d888046bd0e9b9e30b7" }],
-  "routes": [],
+  "routes": [
+    { "pattern": "dunerbox.bg", "custom_domain": true },
+    { "pattern": "www.dunerbox.bg", "custom_domain": true }
+  ],
 
   "env": {
     // Тестов Worker: без RESEND_API_KEY (имейлите само се логват) и с тестов часовник
