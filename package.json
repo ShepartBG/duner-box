@@ -7,14 +7,18 @@
     "start": "node server.js",
     "test": "playwright test",
     "screenshots": "playwright test tests/screenshots.spec.js",
-    "test-email": "node scripts/test-email.js"
+    "test-email": "node scripts/test-email.js",
+    "build": "node scripts/build.js",
+    "deploy": "node scripts/build.js && wrangler deploy",
+    "deploy:test": "node scripts/build.js && wrangler deploy --env test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "@playwright/test": "^1.64.0"
+    "@playwright/test": "^1.64.0",
+    "wrangler": "^4.150.0"
   },
   "dependencies": {
     "@netlify/blobs": "^8.2.0"

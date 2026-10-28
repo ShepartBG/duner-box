@@ -1,0 +1,11 @@
+; dunerbox.bg - DNS records exported from Netlify DNS for Cloudflare import
+$ORIGIN dunerbox.bg.
+$TTL 3600
+; website - temporarily points to Netlify until the Cloudflare Worker takes over
+@	IN	CNAME	dunerbox.netlify.app.
+www	IN	CNAME	dunerbox.netlify.app.
+; email (Resend) - DNS only, do NOT proxy
+rsend	IN	CNAME	rsend-euw1.forge.rmta.net.
+send	IN	CNAME	send.forge.rmta.net.
+_dmarc	IN	TXT	"v=DMARC1; p=none;"
+resend._domainkey	IN	TXT	"p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDJUnETEI71R7jMRX4mfNBoSeyv3JttvS0Jl/j6v/vM76k8FxvG7cDm6xQkVy8w1/jJEYhDtPeELwSehoFB+em0De9T26LQ6/UYgZAfGlQt3U4CB1XDPj+9sCB9Grbi3zQjGVT0aZQff8WhFC1N6QsAz2Sd+XuIGXiNs6JG5CSBmQIDAQAB"

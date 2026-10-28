@@ -1,0 +1,28 @@
+// Cloudflare: статичните файлове от dist/ + Worker за /api/order и /api/decision.
+// Качване: npm run deploy   (тестова версия: npm run deploy:test)
+{
+  "name": "dunerbox",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "kv_namespaces": [{ "binding": "ORDERS", "id": "da53dcf62fad4d888046bd0e9b9e30b7" }],
+  "routes": [],
+
+  "env": {
+    // Тестов Worker: без RESEND_API_KEY (имейлите само се логват) и с тестов часовник
+    "test": {
+      "name": "dunerbox-test",
+      "workers_dev": true,
+      "vars": { "ALLOW_TEST_CLOCK": "1" },
+      "kv_namespaces": [{ "binding": "ORDERS", "id": "4edaac576f3b4fc6be4a09b27d9df8f5" }],
+      "routes": []
+    }
+  }
+}
