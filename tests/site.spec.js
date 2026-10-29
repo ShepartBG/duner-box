@@ -154,7 +154,8 @@ test.describe('Duner Box', () => {
     expect(n).toBeGreaterThanOrEqual(3);
     for (let i = 0; i < n; i++) {
       const a = ext.nth(i);
-      expect(await a.getAttribute('href')).toMatch(/^https:\/\/www\.(google\.com\/maps|pexels\.com)/);
+      // Google Maps, Pexels (кредит за снимки) и подписът на автора на сайта
+      expect(await a.getAttribute('href')).toMatch(/^https:\/\/(www\.(google\.com\/maps|pexels\.com)|hristiyan-ivanov\.pages\.dev\/)/);
       await expect(a).toHaveAttribute('target', '_blank');
       await expect(a).toHaveAttribute('rel', /noopener/);
     }

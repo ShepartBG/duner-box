@@ -37,7 +37,7 @@
     { id: 'duner-large', cat: 'duner', name: 'Дюнер голям', prices: [5.0] },
     { id: 'duner-royal', cat: 'duner', name: 'Дюнер кралски', tag: 'Хит', prices: [8.0],
       desc: 'Най-големият ни дюнер. Не е за слабите духом.',
-      hit: 1, badge: 'Кралски размер', photo: 'wrap-fire' },
+      hit: 1, badge: 'Кралски размер', photo: 'doner-real' },
 
     // Duner Box
     { id: 'box-small', cat: 'box', name: 'Duner Box малък', prices: [5.0],
