@@ -19,8 +19,5 @@
   "devDependencies": {
     "@playwright/test": "^1.64.0",
     "wrangler": "^4.150.0"
-  },
-  "dependencies": {
-    "@netlify/blobs": "^8.2.0"
   }
 }

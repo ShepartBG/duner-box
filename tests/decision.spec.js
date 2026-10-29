@@ -8,7 +8,7 @@ const { memoryStore } = require('../api/store.js');
 const ENV = { RESEND_API_KEY: 're_test', RESEND_FROM: 'Duner Box <poruchki@dunerbox.bg>', OWNER_EMAIL: 'jeki.1997@abv.bg', ORDER_SECRET: 'test-secret' };
 const OPEN = new Date('2026-10-12T09:15:00+03:00');
 const body = {
-  name: 'Мария Иванова', phone: '0888 123 456', email: 'maria@example.com', notes: 'Корпус 3', consent: true,
+  name: 'Мария Иванова', phone: '0888 123 456', email: 'maria@example.com', notes: 'Корпус 3', consent: true, aec: true,
   items: [{ id: 'duner-large', size: 0, qty: 1, opts: { ingredients: ['зеле'], sauces: ['люто'], extras: ['extra-kofte'] } }],
 };
 
@@ -117,6 +117,7 @@ test('целият цикъл през локалния сървър (брауз
   await page.fill('#f-name', 'Тест Тестов');
   await page.fill('#f-phone', '0888 123 456');
   await page.fill('#f-email', 'test@example.com');
+  await page.locator('[name="aec"]').check();
   await page.locator('[name="consent"]').check();
   await page.locator('[data-submit]').click();
   await expect(page.locator('[data-done]')).toBeVisible();

@@ -9,7 +9,7 @@ const CLOSED = new Date('2026-10-12T10:00:00+03:00'); // понеделник 10
 const SAT = new Date('2026-10-17T09:30:00+03:00');    // събота 9:30
 
 const good = (over = {}) => ({
-  name: 'Мария Иванова', phone: '+359 888 123 456', email: 'maria@example.com', notes: 'Корпус 3', consent: true,
+  name: 'Мария Иванова', phone: '+359 888 123 456', email: 'maria@example.com', notes: 'Корпус 3', consent: true, aec: true,
   items: [
     { id: 'sand-tarikatski', size: 1, qty: 2, opts: { ingredients: ['зеле', 'домат'], sauces: ['чеснов'], extras: ['extra-kofte'] } },
     { id: 'side-fries', size: 0, qty: 1, opts: { sauces: ['кетчуп'] } },
@@ -180,25 +180,6 @@ test('.env и скриптовете не се сервират', async ({ reque
   }
 });
 
-test('Netlify обвивката връща същите отговори', async () => {
-  const { handler } = require('../netlify/functions/order.js');
-  const old = process.env.RESEND_API_KEY;
-  process.env.RESEND_API_KEY = ''; // без истински имейли
-  try {
-    expect((await handler({ httpMethod: 'GET', headers: {} })).statusCode).toBe(405);
-    expect((await handler({ httpMethod: 'POST', headers: {}, body: '{нещо' })).statusCode).toBe(400);
-    const r = await handler({ httpMethod: 'POST', headers: { 'x-nf-client-connection-ip': '7.7.7.7' }, body: JSON.stringify(good()) });
-    // реалният час решава: в 9:00–10:00 (пон–пет) е 200, иначе 403 „closed“
-    expect([200, 403]).toContain(r.statusCode);
-    expect(r.headers['Content-Type']).toContain('application/json');
-    const j = JSON.parse(r.body);
-    if (r.statusCode === 403) expect(j.error).toBe('closed');
-    else expect(j.dryRun).toBe(true);
-  } finally {
-    process.env.RESEND_API_KEY = old;
-  }
-});
-
 test('имейлите съдържат данните на фирмата', async () => {
   const sent = [];
   const fetchImpl = async (u, o) => { sent.push(JSON.parse(o.body)); return { ok: true, json: async () => ({}) }; };
@@ -219,22 +200,72 @@ test('цената на добавките се смята на сървъра',
   expect(sent[0].body.html).toContain('без съставки · без сос · + телешко кюфте, + чедър, + яйце');
 });
 
-test('Netlify: тестовият часовник работи само с ALLOW_TEST_CLOCK=1', async () => {
-  const { handler } = require('../netlify/functions/order.js');
-  const saved = { k: process.env.RESEND_API_KEY, c: process.env.ALLOW_TEST_CLOCK };
-  process.env.RESEND_API_KEY = '';
-  const ev = { httpMethod: 'POST', headers: { 'x-test-now': '2026-10-12T09:30:00+03:00', 'x-nf-client-connection-ip': '8.8.4.4' }, body: JSON.stringify(good()) };
-  try {
-    delete process.env.ALLOW_TEST_CLOCK;
-    const real = D.orderWindow().open;
-    const r1 = await handler(ev);
-    expect(r1.statusCode).toBe(real ? 200 : 403); // продукция: решава истинският час
-    process.env.ALLOW_TEST_CLOCK = '1';
-    const r2 = await handler(ev);
-    expect(r2.statusCode).toBe(200);
-    expect(JSON.parse(r2.body).dryRun).toBe(true);
-  } finally {
-    process.env.RESEND_API_KEY = saved.k;
-    if (saved.c === undefined) delete process.env.ALLOW_TEST_CLOCK; else process.env.ALLOW_TEST_CLOCK = saved.c;
-  }
+/* --- Cloudflare Worker (продукцията) --- */
+const { pathToFileURL } = require('url');
+const path = require('path');
+const loadWorker = () => import(pathToFileURL(path.join(__dirname, '..', 'cloudflare', 'worker.js')).href)
+  .then((m) => (m.default && m.default.fetch ? m.default : m.default.default));
+
+function fakeKV() {
+  const data = new Map();
+  const puts = [];
+  return {
+    data, puts,
+    async get(k, type) { const v = data.get(k); return v == null ? null : type === 'json' ? JSON.parse(v) : v; },
+    async put(k, v, opts) { data.set(k, v); puts.push({ k, opts }); },
+  };
+}
+const workerEnv = (extra = {}) => ({
+  ORDERS: fakeKV(),
+  ASSETS: { fetch: async () => new Response('static', { status: 200 }) },
+  RESEND_API_KEY: '', ORDER_SECRET: 'worker-secret', ...extra,
+});
+const post = (url, body, headers = {}) => new Request(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body });
+
+test('Worker: поръчка → запис в KV с изтичане след 90 дни → решение', async () => {
+  const w = await loadWorker();
+  const env = workerEnv({ ALLOW_TEST_CLOCK: '1' });
+  const r = await w.fetch(post('https://dunerbox.bg/api/order', JSON.stringify(good()), { 'x-test-now': '2026-10-12T09:30:00+03:00', 'cf-connecting-ip': '5.5.5.5' }), env);
+  expect(r.status).toBe(200);
+  const j = await r.json();
+  expect(j.ok && j.pending && j.dryRun).toBe(true);
+  expect(env.ORDERS.puts[0].opts.expirationTtl).toBe(90 * 24 * 3600);
+  const saved = JSON.parse(env.ORDERS.data.get(j.orderId));
+  expect(saved.status).toBe('pending');
+
+  const { sign } = require('../api/order.js');
+  const sig = sign(j.orderId, 'worker-secret');
+  const page = await w.fetch(new Request(`https://dunerbox.bg/api/decision?id=${j.orderId}&sig=${sig}&a=accept`), env);
+  expect(page.status).toBe(200);
+  expect(await page.text()).toContain('Потвърди — приемам');
+  const done = await w.fetch(new Request('https://dunerbox.bg/api/decision', {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ id: j.orderId, sig, a: 'accept' }).toString(),
+  }), env);
+  expect(await done.text()).toContain('е приета');
+  expect(JSON.parse(env.ORDERS.data.get(j.orderId)).status).toBe('accepted');
+});
+
+test('Worker: тестовият часовник работи само с ALLOW_TEST_CLOCK=1; грешни заявки; www → dunerbox.bg', async () => {
+  const w = await loadWorker();
+  const req = () => post('https://dunerbox.bg/api/order', JSON.stringify(good()), { 'x-test-now': '2026-10-12T09:30:00+03:00', 'cf-connecting-ip': '6.6.6.6' });
+  const real = D.orderWindow().open;
+  expect((await w.fetch(req(), workerEnv())).status).toBe(real ? 200 : 403); // продукция: решава истинският час
+  expect((await w.fetch(req(), workerEnv({ ALLOW_TEST_CLOCK: '1' }))).status).toBe(200);
+  expect((await w.fetch(new Request('https://dunerbox.bg/api/order'), workerEnv())).status).toBe(405);
+  expect((await w.fetch(post('https://dunerbox.bg/api/order', '{нещо'), workerEnv())).status).toBe(400);
+  const big = post('https://dunerbox.bg/api/order', 'x'.repeat(60 * 1024));
+  expect((await w.fetch(big, workerEnv())).status).toBe(413);
+  const red = await w.fetch(new Request('https://www.dunerbox.bg/privacy.html?a=1'), workerEnv());
+  expect(red.status).toBe(301);
+  expect(red.headers.get('location')).toBe('https://dunerbox.bg/privacy.html?a=1');
+  expect(await (await w.fetch(new Request('https://dunerbox.bg/'), workerEnv())).text()).toBe('static');
+});
+
+test('поръчка без потвърждение за АЕЦ се отказва', async () => {
+  const { sent, fetchImpl } = fakeResend();
+  const r = await handleOrder(good({ aec: false }), { now: OPEN, env: ENV, fetchImpl, ip: '7.7.7.8' });
+  expect(r.status).toBe(422);
+  expect(r.json.fields.aec).toContain('АЕЦ Козлодуй');
+  expect(sent).toHaveLength(0);
 });

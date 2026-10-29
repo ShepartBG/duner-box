@@ -49,6 +49,7 @@ test('screenshots: отворени поръчки с пълна количка'
   await page.fill('#f-name', 'Иван Петров');
   await page.fill('#f-phone', '0888 123 456');
   await page.fill('#f-email', 'ivan@example.com');
+  await page.locator('[name="aec"]').check();
   await page.waitForTimeout(2200);
   const p = testInfo.project.name;
   await page.locator('#order').screenshot({ path: `screenshots/${p}-order-open.png` });

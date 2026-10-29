@@ -3,7 +3,7 @@
  *   /api/order    → api/order.js    (поръчка + имейли през Resend)
  *   /api/decision → api/decision.js (собственикът приема/отказва)
  *   всичко друго  → статичните файлове от dist/
- * Поръчките се пазят в Workers KV (binding ORDERS) вместо в Netlify Blobs.
+ * Поръчките се пазят в Workers KV (binding ORDERS) и се изтриват автоматично след 90 дни.
  * Тайни (wrangler secret put): RESEND_API_KEY, RESEND_FROM, OWNER_EMAIL, ORDER_SECRET.
  */
 import order from '../api/order.js';
@@ -14,7 +14,8 @@ const { handleDecision } = decision;
 
 const kvStore = (kv) => ({
   get: (k) => kv.get(k, 'json'),
-  set: (k, v) => kv.put(k, JSON.stringify(v)),
+  // поръчките се изтриват автоматично след 90 дни (политика за поверителност)
+  set: (k, v) => kv.put(k, JSON.stringify(v), { expirationTtl: 90 * 24 * 3600 }),
 });
 
 const json = (status, body) => new Response(JSON.stringify(body), {

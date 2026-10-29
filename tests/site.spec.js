@@ -414,6 +414,25 @@ test('данните на фирмата са във футъра и в съгл
   await expect(f).toContainText('Станислав Стоянов-94 ЕООД');
   await expect(f).toContainText('ЕИК 206587193');
   await expect(f).toContainText('ул. Търговска 77, 3320 Козлодуй');
-  await expect(page.locator('.check')).toContainText('Станислав Стоянов-94');
+  await expect(page.locator('.check:not(.check--aec)')).toContainText('Станислав Стоянов-94');
   await expect(page.locator('[data-phone]')).toBeHidden(); // няма телефон засега
+});
+
+test('ясно е, че доставката е само до АЕЦ Козлодуй', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.hero__aec')).toContainText('само с доставка до АЕЦ Козлодуй');
+  await expect(page.locator('.aec-only')).toContainText('Доставяме САМО в АЕЦ Козлодуй');
+  await expect(page.locator('.aec-only')).toContainText('из град Козлодуй');
+  await expect(page.locator('.check--aec input')).toHaveAttribute('required', '');
+});
+
+test('политика за поверителност', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.footer__company a[href="privacy.html"]')).toBeVisible();
+  await expect(page.locator('.check:not(.check--aec) a[href="privacy.html"]')).toHaveAttribute('target', '_blank');
+  await page.goto('/privacy.html');
+  await expect(page.locator('h1')).toHaveText('Политика за поверителност');
+  for (const t of ['Станислав Стоянов-94', '206587193', 'dunerbox77@abv.bg', '90 дни', 'Комисията за защита на личните данни', 'Cloudflare', 'Resend']) {
+    await expect(page.locator('body')).toContainText(t);
+  }
 });

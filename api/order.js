@@ -51,6 +51,7 @@ function buildOrder(body, now) {
   const digits = phone.replace(/[^\d]/g, '');
   if (!/^[+\d\s()\-/]+$/.test(phone) || digits.length < 9 || digits.length > 15) errors.phone = 'Въведи валиден телефон.';
   if (!EMAIL_RE.test(email) || email.length > 120) errors.email = 'Въведи валиден имейл.';
+  if (body.aec !== true) errors.aec = 'Доставяме само в АЕЦ Козлодуй — потвърди адреса.';
   if (body.consent !== true) errors.consent = 'Нужно е съгласие за обработка на данните.';
 
   const raw = Array.isArray(body.items) ? body.items : [];

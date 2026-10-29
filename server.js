@@ -11,7 +11,7 @@ const PORT = Number(process.env.PORT) || 5173;
 const DEV = process.argv.includes('--dev');
 const IGNORED = /node_modules|tests|test-results|screenshots|playwright-report|\.git/;
 // тези папки не се сервират като статични файлове
-const PRIVATE = /^(api|scripts|\.env[^\\/]*|photos|node_modules|tests|test-results|screenshots|playwright-report|\.git)([\\/]|$)/;
+const PRIVATE = /^(cloudflare|newphotos|api|scripts|\.env[^\\/]*|photos|node_modules|tests|test-results|screenshots|playwright-report|\.git)([\\/]|$)/;
 const orderApi = require('./api/order.js');
 const decisionApi = require('./api/decision.js');
 const TYPES = {

@@ -109,6 +109,7 @@
         <a class="btn btn--fire btn--lg" href="#order"><svg class="ico"><use href="#i-cart"/></svg> Поръчай за АЕЦ</a>
         <a class="btn btn--ghost btn--lg" href="#menu">Виж менюто</a>
       </div>
+      <p class="hero__aec"><svg class="ico"><use href="#i-atom"/></svg> Онлайн поръчките са <b>само с доставка до АЕЦ Козлодуй</b>. В града не доставяме — заповядай на бара.</p>
       <a class="hero__timer" href="#order" data-mini-timer>
         <span class="hero__timer-dot"></span>
         <span data-mini-timer-text>Поръчки за АЕЦ: 9:00 – 10:00</span>
@@ -212,6 +213,14 @@
       </div>
     </div>
 
+    <div class="aec-only" role="note">
+      <svg class="ico" aria-hidden="true"><use href="#i-atom"/></svg>
+      <div>
+        <b>Доставяме САМО в АЕЦ Козлодуй.</b>
+        <span>Поръчки с доставка из град Козлодуй или другаде не приемаме. За всички останали — заповядайте на бара на ул. Търговска 77.</span>
+      </div>
+    </div>
+
     <ul class="rules" aria-label="Условия за поръчка">
       <li class="rules__main"><svg class="ico"><use href="#i-clock"/></svg><span>Поръчки се приемат <b>само от 9:00 до 10:00</b> (понеделник – петък)</span></li>
       <li><svg class="ico"><use href="#i-atom"/></svg><span>Доставяме <b>само в АЕЦ Козлодуй</b></span></li>
@@ -261,9 +270,14 @@
             <label for="f-website">Уебсайт</label>
             <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
           </div>
+          <label class="check check--aec">
+            <input type="checkbox" name="aec" required>
+            <span><b>Потвърждавам, че доставката е в АЕЦ Козлодуй.</b> Разбирам, че поръчки из града не се приемат.</span>
+          </label>
+          <span class="field__err" data-err="aec"></span>
           <label class="check">
             <input type="checkbox" name="consent" required>
-            <span>Съгласен/на съм „Станислав Стоянов-94“ ЕООД да използва данните ми само за изпълнение на поръчката.</span>
+            <span>Съгласен/на съм „Станислав Стоянов-94“ ЕООД да използва данните ми само за изпълнение на поръчката (<a href="privacy.html" target="_blank" rel="noopener">политика за поверителност</a>).</span>
           </label>
           <span class="field__err" data-err="consent"></span>
           <p class="form__msg" data-form-msg role="status"></p>
@@ -430,6 +444,7 @@
   <div class="wrap footer__company">
     <span>Сайтът и поръчките се обслужват от <b>Станислав Стоянов-94 ЕООД</b></span>
     <span>ЕИК 206587193</span>
+    <a href="privacy.html">Политика за поверителност</a>
     <span>ул. Търговска 77, 3320 Козлодуй</span>
   </div>
   <div class="wrap footer__bottom">

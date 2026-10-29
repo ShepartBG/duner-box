@@ -1,6 +1,6 @@
 /*
  * Хранилище за поръчките (чакащи / приети / отказани).
- *   - в Netlify: Netlify Blobs (безплатно, без база данни)
+ *   - в Cloudflare: Workers KV (в cloudflare/worker.js)
  *   - локално:   файлове в .data/orders (не се качват в GitHub)
  *   - в тестове: в паметта
  */
@@ -28,20 +28,4 @@ function fileStore(dir) {
   };
 }
 
-/* Netlify Functions (Lambda формат): трябва да се подаде event-ът, за да се свърже хранилището */
-function netlifyStore(event) {
-  if (!event || !event.blobs) {
-    // извън Netlify (локални тестове на обвивката) — в паметта; в Netlify без хранилище — грешка
-    if (process.env.NETLIFY) throw new Error('Netlify Blobs не е свързан');
-    return memoryStore();
-  }
-  const blobs = require('@netlify/blobs');
-  blobs.connectLambda(event);
-  const s = blobs.getStore('orders');
-  return {
-    async get(k) { return s.get(k, { type: 'json' }); },
-    async set(k, v) { await s.setJSON(k, v); },
-  };
-}
-
-module.exports = { memoryStore, fileStore, netlifyStore };
+module.exports = { memoryStore, fileStore };

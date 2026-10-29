@@ -24,6 +24,7 @@ async function fillForm(page, { name = 'Иван Петров', phone = '0888 12
   await page.fill('#f-phone', phone);
   await page.fill('#f-email', email);
   await page.fill('#f-notes', notes);
+  if (consent) await page.locator('[name="aec"]').check();
   if (consent) await page.locator('[name="consent"]').check();
 }
 
@@ -228,6 +229,7 @@ test.describe('Поръчки за АЕЦ', () => {
     await expect(page.locator('[data-err="phone"]')).toHaveText('Въведи валиден телефон.');
     await expect(page.locator('[data-err="email"]')).toHaveText('Въведи валиден имейл.');
     await expect(page.locator('[data-err="consent"]')).not.toBeEmpty();
+    await expect(page.locator('[data-err="aec"]')).toHaveText('Потвърди, че доставката е в АЕЦ Козлодуй.');
     await expect(page.locator('#f-name')).toBeFocused();
     await expect(page.locator('[data-done]')).toBeHidden();
   });
@@ -253,7 +255,7 @@ test.describe('Поръчки за АЕЦ', () => {
 
     expect(bodies).toHaveLength(1);
     expect(bodies[0]).toMatchObject({
-      name: 'Иван Петров', phone: '0888 123 456', email: 'ivan@example.com', notes: 'Сграда 2, без лук', consent: true,
+      name: 'Иван Петров', phone: '0888 123 456', email: 'ivan@example.com', notes: 'Сграда 2, без лук', consent: true, aec: true,
     });
     expect(bodies[0].items).toHaveLength(3);
     expect(bodies[0].items[0]).toMatchObject({ id: 'duner-royal', size: 0, qty: 1, opts: { sauces: ['люто'], extras: [] } });

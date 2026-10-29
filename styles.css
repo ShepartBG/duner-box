@@ -630,3 +630,18 @@ body.bld-open{overflow:hidden}
   .bld__foot{padding:12px 16px calc(14px + env(safe-area-inset-bottom))}
 }
 .done__hint{color:var(--muted)!important;font-size:.8rem!important}
+
+/* ===== Само за АЕЦ Козлодуй ===== */
+.aec-only{display:flex;gap:14px;align-items:center;margin:0 0 16px;padding:16px 20px;border-radius:16px;border:2px solid var(--fire);background:linear-gradient(90deg,rgba(255,90,20,.32),rgba(255,90,20,.08));box-shadow:0 0 36px rgba(255,90,20,.25)}
+.aec-only .ico{width:34px;height:34px;color:var(--gold);flex:none}
+.aec-only b{display:block;font-family:var(--font-d);text-transform:uppercase;font-weight:400;font-size:1.15rem;color:#fff;letter-spacing:.02em}
+.aec-only span{color:var(--text);font-size:.92rem}
+.hero__aec{display:flex;gap:8px;align-items:flex-start;margin:18px 0 0;max-width:520px;padding:10px 14px;border-left:3px solid var(--fire);background:rgba(255,90,20,.1);border-radius:0 10px 10px 0;font-size:.92rem;color:var(--text)}
+.hero__aec .ico{color:var(--gold);margin-top:3px}
+.hero__aec b{color:#fff}
+.check--aec{padding:10px 12px;border:1px solid var(--fire);border-radius:12px;background:rgba(255,90,20,.08);color:var(--text)}
+.check--aec b{color:#fff}
+.check a{color:var(--gold)}
+@media (max-width:600px){.aec-only{padding:14px}.aec-only b{font-size:1rem}}
+.footer__company a{color:var(--muted);text-decoration:underline}
+.footer__company a:hover{color:var(--gold)}
