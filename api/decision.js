@@ -107,11 +107,10 @@ async function handleDecision({ method, params }, { env = process.env, store, fe
 
   const mail = action === 'accept' ? O.customerAcceptedEmail(o) : O.customerDeclinedEmail(o, reason);
   const from = env.RESEND_FROM || O.DEFAULT_FROM;
-  const ownerTo = env.OWNER_EMAIL || O.DEFAULT_OWNER;
   let sent = true;
   if (env.RESEND_API_KEY) {
     try {
-      await O.sendEmail(env, fetchImpl, { from, to: [o.email], reply_to: ownerTo, subject: mail.subject, html: mail.html, text: mail.text });
+      await O.sendEmail(env, fetchImpl, { from, to: [o.email], subject: mail.subject, html: mail.html, text: mail.text });
     } catch (e) {
       sent = false;
       console.error('[decision] customer email failed', e.message);

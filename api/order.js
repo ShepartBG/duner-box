@@ -146,7 +146,7 @@ function ownerEmail(o, links) {
   const html = shell(`Нова поръчка ${esc(o.id)}`, `
     <p style="margin:0 0 6px"><b>Име:</b> ${esc(o.name)}</p>
     <p style="margin:0 0 6px"><b>Телефон:</b> <a href="tel:${esc(o.phone.replace(/[^\d+]/g, ''))}" style="color:#ffc21a">${esc(o.phone)}</a></p>
-    <p style="margin:0 0 6px"><b>Имейл:</b> <a href="mailto:${esc(o.email)}" style="color:#ffc21a">${esc(o.email)}</a></p>
+    <p style="margin:0 0 6px"><b>Имейл:</b> <a href="mailto:${esc(o.email)}" style="color:#ffc21a">${esc(o.email)}</a> <span style="color:#b9a491;font-size:12px">(за да пишеш на клиента, натисни адреса — бутон „Отговор“ стига до Duner Box)</span></p>
     <p style="margin:0 0 6px"><b>Доставка:</b> ${D.ORDER.area}, до ${D.ORDER.deliveryMinutes} мин. · плащане ${D.ORDER.payment}</p>
     <p style="margin:0 0 16px"><b>Получена:</b> ${esc(o.stamp)}</p>
     ${links ? `<div style="margin:0 0 20px;padding:16px;background:#2a1a10;border:1px solid #ff5a1f;border-radius:12px">
@@ -163,7 +163,8 @@ function ownerEmail(o, links) {
     '', `Общо: ${fmt(o.total)}`,
     ...(links ? ['', `Приемам: ${links.accept}`, `Отказвам: ${links.decline}`] : []),
   ].filter((x) => x !== null).join('\n');
-  return { subject: `Нова поръчка ${o.id} · ${fmt(o.total)} · ${o.name} — потвърди`, html, text };
+  // „Duner Box“ в началото: заглавието да не е само с главни латински букви (SpamAssassin SUBJ_ALL_CAPS)
+  return { subject: `Duner Box: нова поръчка ${o.id} · ${fmt(o.total)} · ${o.name} — потвърди`, html, text };
 }
 
 function customerEmail(o) {
@@ -223,7 +224,27 @@ function lineText(l) {
   return `${l.qty} x ${l.name}${l.sizeLabel ? ` (${l.sizeLabel})` : ''}${l.options ? ` [${l.options}]` : ''} — ${l.sum == null ? 'цена при доставка' : fmt(l.sum)}`;
 }
 
+/*
+ * Адрес за отговор: винаги на нашия домейн (poruchki@… се препраща към собственика през Cloudflare Email Routing).
+ * Reply-To към безплатна поща (abv.bg, gmail.com) при подател от dunerbox.bg сваля много точки при спам филтрите.
+ */
+function replyAddress(env) {
+  const from = env.RESEND_FROM || DEFAULT_FROM;
+  const m = from.match(/<([^>]+)>/);
+  return env.REPLY_TO || (m ? m[1] : from);
+}
+
+function withHeaders(env, msg) {
+  const reply = replyAddress(env);
+  return {
+    ...msg,
+    reply_to: reply,
+    headers: { 'List-Unsubscribe': `<mailto:${reply}?subject=unsubscribe>`, ...(msg.headers || {}) },
+  };
+}
+
 async function sendEmail(env, fetchImpl, msg) {
+  msg = withHeaders(env, msg);
   const r = await fetchImpl('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
@@ -273,8 +294,8 @@ async function handleOrder(body, { now = new Date(), env = process.env, fetchImp
   const from = env.RESEND_FROM || DEFAULT_FROM;
   const ownerTo = env.OWNER_EMAIL || DEFAULT_OWNER;
   const emails = [
-    { from, to: [ownerTo], reply_to: order.email, subject: owner.subject, html: owner.html, text: owner.text },
-    { from, to: [order.email], reply_to: ownerTo, subject: cust.subject, html: cust.html, text: cust.text },
+    { from, to: [ownerTo], subject: owner.subject, html: owner.html, text: owner.text },
+    { from, to: [order.email], subject: cust.subject, html: cust.html, text: cust.text },
   ];
 
   if (!env.RESEND_API_KEY) {

@@ -43,9 +43,14 @@ test('изпраща 2 имейла: към собственика и към к�
 
   const [owner, cust] = sent.map((s) => s.body);
   expect(owner.to).toEqual(['jeki.1997@abv.bg']);
-  expect(owner.reply_to).toBe('maria@example.com');
+  // „Отговор“ винаги към нашия домейн — Reply-To към безплатна поща сваля точки при спам филтрите
+  expect(owner.reply_to).toBe('poruchki@dunerbox.bg');
+  expect(cust.reply_to).toBe('poruchki@dunerbox.bg');
+  expect(owner.headers['List-Unsubscribe']).toBe('<mailto:poruchki@dunerbox.bg?subject=unsubscribe>');
+  expect(owner.subject).toMatch(/^Duner Box: нова поръчка/);
+  expect(owner.html).toContain('mailto:maria@example.com');
   expect(owner.from).toBe('Duner Box <poruchki@dunerbox.bg>');
-  expect(owner.subject).toContain('Нова поръчка');
+  expect(owner.subject).toContain('нова поръчка');
   expect(owner.subject).toContain('22,50 €');
   expect(owner.html).toContain('2 × Хел');
   expect(owner.html).toContain('черна череша');
