@@ -59,6 +59,35 @@ function decidedPage(o) {
     ${orderSummary(o)}`);
 }
 
+/*
+ * Записва решението и праща имейл на клиента. Ползва се от линковете в имейла и от панела (api/admin.js).
+ * Връща { already } ако някой вече е решил, { missing } ако няма такава поръчка, иначе { order, sent }.
+ */
+async function applyDecision(id, action, reason, { env = process.env, store, fetchImpl = globalThis.fetch, now = new Date() } = {}) {
+  // чете отново точно преди запис (двоен клик / двама души / имейл и панел едновременно)
+  const o = await store.get(id);
+  if (!o) return { missing: true };
+  if (o.status !== 'pending') return { already: o };
+  const decidedStamp = new Intl.DateTimeFormat('bg-BG', { timeZone: 'Europe/Sofia', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(now);
+  const updated = { ...o, status: action === 'accept' ? 'accepted' : 'declined', decidedAt: now.toISOString(), decidedStamp, reason };
+  await store.set(id, updated);
+
+  const mail = action === 'accept' ? O.customerAcceptedEmail(o) : O.customerDeclinedEmail(o, reason);
+  const from = env.RESEND_FROM || O.DEFAULT_FROM;
+  let sent = true;
+  if (env.RESEND_API_KEY) {
+    try {
+      await O.sendEmail(env, fetchImpl, { from, to: [o.email], subject: mail.subject, html: mail.html, text: mail.text });
+    } catch (e) {
+      sent = false;
+      console.error('[decision] customer email failed', e.message);
+    }
+  } else {
+    console.log(`[decision] ТЕСТОВ РЕЖИМ — ${id}: ${updated.status}`);
+  }
+  return { order: updated, sent };
+}
+
 async function handleDecision({ method, params }, { env = process.env, store, fetchImpl = globalThis.fetch, now = new Date() } = {}) {
   const id = String(params.id || '');
   const action = params.a === 'decline' ? 'decline' : params.a === 'accept' ? 'accept' : '';
@@ -98,26 +127,9 @@ async function handleDecision({ method, params }, { env = process.env, store, fe
 
   // POST — записваме решението
   const reason = action === 'decline' ? String(params.reason || '').trim().slice(0, 300) : '';
-  const decidedStamp = new Intl.DateTimeFormat('bg-BG', { timeZone: 'Europe/Sofia', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(now);
-  const updated = { ...o, status: action === 'accept' ? 'accepted' : 'declined', decidedAt: now.toISOString(), decidedStamp, reason };
-  // проверка отново точно преди запис (двоен клик / двама души едновременно)
-  const fresh = await store.get(id);
-  if (fresh && fresh.status !== 'pending') return decidedPage(fresh);
-  await store.set(id, updated);
-
-  const mail = action === 'accept' ? O.customerAcceptedEmail(o) : O.customerDeclinedEmail(o, reason);
-  const from = env.RESEND_FROM || O.DEFAULT_FROM;
-  let sent = true;
-  if (env.RESEND_API_KEY) {
-    try {
-      await O.sendEmail(env, fetchImpl, { from, to: [o.email], subject: mail.subject, html: mail.html, text: mail.text });
-    } catch (e) {
-      sent = false;
-      console.error('[decision] customer email failed', e.message);
-    }
-  } else {
-    console.log(`[decision] ТЕСТОВ РЕЖИМ — ${id}: ${updated.status}`);
-  }
+  const r = await applyDecision(id, action, reason, { env, store, fetchImpl, now });
+  if (r.already) return decidedPage(r.already);
+  const { sent } = r;
 
   const warn = sent ? '' : `<div class="note"><b>Внимание:</b> имейлът до клиента не тръгна. Обади се на ${esc(o.name)}: <a href="tel:${esc(o.phone.replace(/[^\d+]/g, ''))}" style="color:#ffc21a">${esc(o.phone)}</a></div>`;
   if (action === 'accept') {
@@ -149,3 +161,4 @@ async function handler(req, res) {
 
 module.exports = handler;
 module.exports.handleDecision = handleDecision;
+module.exports.applyDecision = applyDecision;

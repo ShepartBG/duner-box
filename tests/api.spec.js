@@ -224,6 +224,7 @@ function fakeKV() {
     data, puts,
     async get(k, type) { const v = data.get(k); return v == null ? null : type === 'json' ? JSON.parse(v) : v; },
     async put(k, v, opts) { data.set(k, v); puts.push({ k, opts }); },
+    async list({ prefix }) { return { keys: [...data.keys()].filter((k) => k.startsWith(prefix)).map((name) => ({ name })), list_complete: true }; },
   };
 }
 const workerEnv = (extra = {}) => ({
@@ -271,6 +272,25 @@ test('Worker: тестовият часовник работи само с ALLOW
   expect(red.status).toBe(301);
   expect(red.headers.get('location')).toBe('https://dunerbox.bg/privacy.html?a=1');
   expect(await (await w.fetch(new Request('https://dunerbox.bg/'), workerEnv())).text()).toBe('static');
+});
+
+test('Worker: панел — вход, поръчките от KV, приемане', async () => {
+  const w = await loadWorker();
+  const env = workerEnv({ ALLOW_TEST_CLOCK: '1', ADMIN_PASSWORD: 'панел' });
+  const o = await (await w.fetch(post('https://dunerbox.bg/api/order', JSON.stringify(good()), { 'x-test-now': '2026-10-12T09:30:00+03:00', 'cf-connecting-ip': '8.8.8.1' }), env)).json();
+  const bad = await w.fetch(post('https://dunerbox.bg/api/admin/login', JSON.stringify({ password: 'не' }), { 'cf-connecting-ip': '8.8.8.2' }), env);
+  expect(bad.status).toBe(401);
+  const { token } = await (await w.fetch(post('https://dunerbox.bg/api/admin/login', JSON.stringify({ password: 'панел' }), { 'cf-connecting-ip': '8.8.8.2' }), env)).json();
+  const auth = { Authorization: `Bearer ${token}` };
+  expect((await w.fetch(new Request('https://dunerbox.bg/api/admin/orders?day=2026-10-12'), env)).status).toBe(401);
+  // в истинския KV list() закъснява до минута — новата поръчка трябва да се вижда веднага през индекса за деня
+  env.ORDERS.list = async () => ({ keys: [], list_complete: true });
+  const list = await (await w.fetch(new Request('https://dunerbox.bg/api/admin/orders?day=2026-10-12', { headers: auth }), env)).json();
+  expect(list.orders.map((x) => x.id)).toEqual([o.orderId]);
+  const r = await w.fetch(post('https://dunerbox.bg/api/admin/decide', JSON.stringify({ id: o.orderId, action: 'accept' }), auth), env);
+  expect(r.status).toBe(200);
+  expect(r.headers.get('cache-control')).toBe('no-store');
+  expect(JSON.parse(env.ORDERS.data.get(o.orderId)).status).toBe('accepted');
 });
 
 test('поръчка без потвърждение за АЕЦ се отказва', async () => {

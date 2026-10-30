@@ -12,6 +12,7 @@ function memoryStore() {
   return {
     async get(k) { return m.has(k) ? JSON.parse(m.get(k)) : null; },
     async set(k, v) { m.set(k, JSON.stringify(v)); },
+    async list(prefix) { return [...m.keys()].filter((k) => k.startsWith(prefix)); },
   };
 }
 
@@ -24,6 +25,11 @@ function fileStore(dir) {
     async set(k, v) {
       fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(file(k), JSON.stringify(v, null, 2));
+    },
+    async list(prefix) {
+      try {
+        return fs.readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => f.slice(0, -5)).filter((k) => k.startsWith(prefix));
+      } catch { return []; }
     },
   };
 }

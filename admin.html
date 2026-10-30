@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Поръчки — Duner Box</title>
+  <meta name="theme-color" content="#0b0705">
+  <link rel="manifest" href="/admin.webmanifest">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/assets/admin/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DB Поръчки">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Russo+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+  <!-- вход -->
+  <main class="login" data-login hidden>
+    <form class="login__card" data-login-form>
+      <img src="/assets/favicon.svg" alt="" width="64" height="64">
+      <h1>DUNER <b>BOX</b></h1>
+      <p>Поръчки за АЕЦ Козлодуй</p>
+      <label for="pw">Парола</label>
+      <input id="pw" name="password" type="password" autocomplete="current-password" required>
+      <button class="btn btn--gold" type="submit">Влез</button>
+      <p class="login__err" data-login-err role="alert"></p>
+    </form>
+  </main>
+
+  <!-- панел -->
+  <div class="app" data-app hidden>
+    <header class="top">
+      <div class="top__brand">DUNER <b>BOX</b> <span>Поръчки</span></div>
+      <div class="win" data-win><span class="win__dot"></span><span data-win-text>…</span></div>
+      <div class="top__tools">
+        <button class="tool" type="button" data-sound aria-pressed="false" title="Звук при нова поръчка">🔕 <span>Звук</span></button>
+        <button class="tool" type="button" data-refresh title="Обнови">⟳</button>
+        <button class="tool tool--ghost" type="button" data-logout title="Изход">Изход</button>
+      </div>
+    </header>
+
+    <div class="bar">
+      <div class="days">
+        <button class="tool" type="button" data-day-prev aria-label="Предишен ден">‹</button>
+        <button class="days__label" type="button" data-day-today><span data-day-label>Днес</span></button>
+        <button class="tool" type="button" data-day-next aria-label="Следващ ден">›</button>
+      </div>
+      <div class="stats" data-stats></div>
+    </div>
+
+    <div class="banner" data-sound-banner>
+      <span>🔔 Включи звука, за да чуваш новите поръчки.</span>
+      <button class="btn btn--gold btn--sm" type="button" data-sound-on>Включи звука</button>
+    </div>
+    <div class="banner banner--warn" data-offline hidden>Няма връзка със сървъра — опитвам отново…</div>
+
+    <section class="list" data-list aria-live="polite"></section>
+    <p class="empty" data-empty hidden>Няма поръчки за този ден.</p>
+    <p class="foot">Обновява се автоматично на всеки 10 секунди. Имейлът с поръчката продължава да идва като резерва.</p>
+  </div>
+
+  <!-- отказ: причина -->
+  <dialog class="dlg" data-decline-dlg>
+    <form method="dialog" data-decline-form>
+      <h2>Отказваш поръчка <span data-decline-id></span>?</h2>
+      <p class="muted">Причината (по желание) отива в имейла до клиента.</p>
+      <div class="chips" data-chips>
+        <button type="button" class="chip">Много поръчки в момента</button>
+        <button type="button" class="chip">Свърши продукт от поръчката</button>
+        <button type="button" class="chip">Не можем да доставим в момента</button>
+      </div>
+      <textarea name="reason" maxlength="300" placeholder="Причина…" data-decline-reason></textarea>
+      <div class="dlg__btns">
+        <button class="btn btn--ghost" value="cancel" type="submit">Назад</button>
+        <button class="btn btn--red" value="ok" type="submit" data-decline-ok>❌ Откажи</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" data-toast role="status"></div>
+
+  <script src="/menu-data.js"></script>
+  <script src="/admin.js"></script>
+</body>
+</html>

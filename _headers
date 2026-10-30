@@ -5,3 +5,9 @@
 
 /assets/*
   Cache-Control: public, max-age=604800
+
+# панелът за поръчки: без индексиране и винаги най-новата версия
+/admin*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache
+  X-Frame-Options: DENY

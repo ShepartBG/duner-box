@@ -23,7 +23,7 @@
     "test": {
       "name": "dunerbox-test",
       "workers_dev": true,
-      "vars": { "ALLOW_TEST_CLOCK": "1" },
+      "vars": { "ALLOW_TEST_CLOCK": "1", "ADMIN_PASSWORD": "test-panel" },
       "kv_namespaces": [{ "binding": "ORDERS", "id": "4edaac576f3b4fc6be4a09b27d9df8f5" }],
       "routes": []
     }

@@ -152,6 +152,7 @@ function ownerEmail(o, links) {
     ${links ? `<div style="margin:0 0 20px;padding:16px;background:#2a1a10;border:1px solid #ff5a1f;border-radius:12px">
       <p style="margin:0 0 10px;font-size:16px"><b>Клиентът чака потвърждение.</b> Приемаш ли поръчката?</p>
       ${btn(links.accept, '✅ Приемам', '#2e9e4f')}${btn(links.decline, '❌ Отказвам', '#c22d18')}
+      ${links.panel ? `<p style="margin:10px 0 0;font-size:13px;color:#b9a491">Или от <a href="${esc(links.panel)}" style="color:#ffc21a">панела с поръчките</a>.</p>` : ''}
     </div>` : ''}
     ${o.notes ? `<div style="margin:0 0 18px;padding:12px 14px;background:#2a1a10;border-left:3px solid #ffc21a;border-radius:6px"><b>Описание:</b><br>${esc(o.notes).replace(/\n/g, '<br>')}</div>` : ''}
     ${itemsTable(o)}`);
@@ -278,6 +279,7 @@ async function handleOrder(body, { now = new Date(), env = process.env, fetchImp
   const links = {
     accept: decisionLink(baseUrl, order.id, secret, 'accept'),
     decline: decisionLink(baseUrl, order.id, secret, 'decline'),
+    panel: `${baseUrl}/admin`,
   };
   if (store) {
     try {
