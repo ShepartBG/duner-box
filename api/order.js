@@ -262,7 +262,7 @@ async function handleOrder(body, { now = new Date(), env = process.env, fetchImp
 
   const win = D.orderWindow(now);
   if (!win.open) {
-    return fail(403, 'closed', `Поръчки се приемат само от 9:00 до 10:00 (пон–пет).`, { secondsToOpen: win.secondsToOpen });
+    return fail(403, 'closed', `Поръчки се приемат само от 8:00 до 10:00 (пон–пет).`, { secondsToOpen: win.secondsToOpen });
   }
   // ограничение на заявките (изключено само за тестовия сървър с ALLOW_TEST_CLOCK)
   if (ip && env.ALLOW_TEST_CLOCK !== '1' && rateLimited(ip, now.getTime())) return fail(429, 'rate_limited', 'Твърде много опити. Опитай пак след малко.');
@@ -281,7 +281,7 @@ async function handleOrder(body, { now = new Date(), env = process.env, fetchImp
   };
   if (store) {
     try {
-      // recordedAt = истинският час (тестовият часовник служи само за прозореца 9–10)
+      // recordedAt = истинският час (тестовият часовник служи само за прозореца 8–10)
       await store.set(order.id, { ...order, status: 'pending', createdAt: recordedAt.toISOString() });
     } catch (e) {
       console.error('[order] store failed', e.message);

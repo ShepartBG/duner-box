@@ -82,14 +82,20 @@ test('цените се смятат на сървъра — подправен�
   expect(sent[0].body.html).toContain('8,00 €');
 });
 
-test('отказва поръчки извън 9:00–10:00 и в събота', async () => {
-  for (const now of [CLOSED, SAT, new Date('2026-10-12T08:59:59+03:00')]) {
+test('отказва поръчки извън 8:00–10:00 и в събота', async () => {
+  for (const now of [CLOSED, SAT, new Date('2026-10-12T07:59:59+03:00')]) {
     const { sent, fetchImpl } = fakeResend();
     const r = await handleOrder(good(), { now, env: ENV, fetchImpl, ip: '1.1.1.3' });
     expect(r.status).toBe(403);
     expect(r.json.error).toBe('closed');
     expect(sent).toHaveLength(0);
   }
+});
+
+test('приема поръчки от 8:00', async () => {
+  const { fetchImpl } = fakeResend();
+  const r = await handleOrder(good(), { now: new Date('2026-10-12T08:00:00+03:00'), env: ENV, fetchImpl, ip: '1.1.1.9' });
+  expect(r.status).toBe(200);
 });
 
 test('валидира задължителните полета', async () => {

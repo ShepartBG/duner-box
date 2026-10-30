@@ -423,7 +423,7 @@ function updateSubmit() {
   if (!btn) return;
   btn.disabled = sending || !windowState.open || cart.lines.length === 0;
   $('[data-closed-note]').textContent = !windowState.open
-    ? 'Бутонът се отключва от 9:00 до 10:00 (пон–пет).'
+    ? 'Бутонът се отключва от 8:00 до 10:00 (пон–пет).'
     : cart.lines.length === 0 ? 'Добави поне едно нещо в количката.' : '';
 }
 
@@ -548,7 +548,7 @@ function tickTimer() {
       $('[data-timer-label]').textContent = 'Поръчките отварят след';
       $('[data-timer-digits]').textContent = w.secondsToOpen == null ? '--:--:--' : hms(w.secondsToOpen);
       const when = w.inDays === 0 ? 'днес' : w.inDays === 1 ? 'утре' : `в ${DAY_NAMES[w.nextDay]}`;
-      $('[data-timer-sub]').textContent = `${when} в 9:00`;
+      $('[data-timer-sub]').textContent = `${when} в 8:00`;
     }
   }
   const mini = $('[data-mini-timer]');

@@ -21,7 +21,7 @@ const { handleOrder } = require('../api/order.js');
   // фиксиран час в прозореца за поръчки, за да може тестът да мине по всяко време
   const now = new Date();
   const sofia = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Sofia' }));
-  now.setTime(now.getTime() + ((9 * 60 + 30) - (sofia.getHours() * 60 + sofia.getMinutes())) * 60000);
+  now.setTime(now.getTime() + ((8 * 60 + 30) - (sofia.getHours() * 60 + sofia.getMinutes())) * 60000);
   while (![1, 2, 3, 4, 5].includes(new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Sofia' })).getDay())) {
     now.setTime(now.getTime() + 86400000);
   }

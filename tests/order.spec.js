@@ -40,19 +40,19 @@ async function routeWithClock(page, iso) {
 
 test.describe('Поръчки за АЕЦ', () => {
   test('таймерът показва колко остава до отварянето', async ({ page }) => {
-    await page.clock.setFixedTime(AT('08:15'));
+    await page.clock.setFixedTime(AT('07:15'));
     await page.goto('/');
     await expect(page.locator('[data-timer]')).not.toHaveClass(/is-open/);
     await expect(page.locator('[data-timer-label]')).toHaveText('Поръчките отварят след');
     await expect(page.locator('[data-timer-digits]')).toHaveText('00:45:00');
-    await expect(page.locator('[data-timer-sub]')).toHaveText('днес в 9:00');
+    await expect(page.locator('[data-timer-sub]')).toHaveText('днес в 8:00');
     await expect(page.locator('[data-mini-timer-text]')).toHaveText('Поръчки за АЕЦ след 00:45:00');
   });
 
   test('таймерът брои надолу всяка секунда', async ({ page }) => {
-    await page.clock.install({ time: AT('08:58') });
+    await page.clock.install({ time: AT('07:58') });
     await page.goto('/');
-    await page.clock.pauseAt(AT('08:59'));
+    await page.clock.pauseAt(AT('07:59'));
     await expect(page.locator('[data-timer-digits]')).toHaveText('00:01:00');
     await page.clock.fastForward(5000);
     await expect(page.locator('[data-timer-digits]')).toHaveText('00:00:55');
@@ -72,8 +72,8 @@ test.describe('Поръчки за АЕЦ', () => {
   test('в петък след 10:00 таймерът сочи понеделник', async ({ page }) => {
     await page.clock.setFixedTime(new Date('2026-10-16T10:00:00+03:00'));
     await page.goto('/');
-    await expect(page.locator('[data-timer-sub]')).toHaveText('в понеделник в 9:00');
-    await expect(page.locator('[data-timer-digits]')).toHaveText('2 д 23:00:00');
+    await expect(page.locator('[data-timer-sub]')).toHaveText('в понеделник в 8:00');
+    await expect(page.locator('[data-timer-digits]')).toHaveText('2 д 22:00:00');
   });
 
   test('условията за поръчка са ясно видими', async ({ page }) => {
@@ -81,7 +81,7 @@ test.describe('Поръчки за АЕЦ', () => {
     const rules = page.locator('.rules');
     await rules.scrollIntoViewIfNeeded();
     await expect(rules.locator('.rules__main')).toBeVisible();
-    await expect(rules.locator('.rules__main')).toContainText('само от 9:00 до 10:00');
+    await expect(rules.locator('.rules__main')).toContainText('само от 8:00 до 10:00');
     await expect(rules).toContainText('само в АЕЦ Козлодуй');
     await expect(rules).toContainText('до 30 минути');
     await expect(rules).toContainText('само в брой');
@@ -203,13 +203,13 @@ test.describe('Поръчки за АЕЦ', () => {
     await expect(page.locator('#shop-tab-extras')).toHaveCount(0);
   });
 
-  test('извън 9:00–10:00 бутонът за изпращане е заключен', async ({ page }) => {
+  test('извън 8:00–10:00 бутонът за изпращане е заключен', async ({ page }) => {
     await page.clock.setFixedTime(AT('10:30'));
     await page.goto('/');
     await addFood(page, 'duner-small');
     await fillForm(page);
     await expect(page.locator('[data-submit]')).toBeDisabled();
-    await expect(page.locator('[data-closed-note]')).toHaveText(/9:00 до 10:00/);
+    await expect(page.locator('[data-closed-note]')).toHaveText(/8:00 до 10:00/);
   });
 
   test('празна количка не може да се изпрати', async ({ page }) => {
@@ -274,7 +274,7 @@ test.describe('Поръчки за АЕЦ', () => {
     await addFood(page, 'duner-small');
     await fillForm(page);
     await page.locator('[data-submit]').click();
-    await expect(page.locator('[data-form-msg]')).toHaveText(/само от 9:00 до 10:00/);
+    await expect(page.locator('[data-form-msg]')).toHaveText(/само от 8:00 до 10:00/);
     await expect(page.locator('[data-done]')).toBeHidden();
   });
 
