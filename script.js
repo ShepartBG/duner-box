@@ -3,7 +3,9 @@
  */
 const { CATEGORIES, MENU, HOURS, ORDER, DAY_NAMES, INGREDIENTS, SAUCES, sofiaNow, orderWindow, round2, sizeLabels, normalizeOptions, optionsSummary } = window.DUNER;
 
-const IMG = (name) => `assets/img/${name}.webp`;
+// версии на снимките (?v=…) — попълва ги scripts/build.js, за да не остават стари снимки в кеша на браузъра
+const IMG_V = {};
+const IMG = (name) => `assets/img/${name}.webp${IMG_V[name] ? `?v=${IMG_V[name]}` : ''}`;
 const eur = (n) => `${n.toFixed(2).replace('.', ',')} €`;
 const fmtTime = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
 const catOf = (id) => CATEGORIES.find((c) => c.id === id);

@@ -22,6 +22,8 @@ const DEFAULT_ORIGINS = 'https://shepartbg.github.io,http://localhost:5173,http:
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const fmt = (n) => `${n.toFixed(2).replace('.', ',')} €`;
+// в HTML имейлите: сумата и „€“ никога на отделни редове (и в пощи, които не четат CSS)
+const money = (n) => fmt(n).replace(' ', '&nbsp;');
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 /* --- лимит на заявки (на инстанция) --- */
@@ -104,14 +106,14 @@ function itemsTable(o) {
   const rows = o.lines.map((l) => `
     <tr>
       <td style="padding:8px 0;border-bottom:1px solid #3a2a1e;color:#f4e7d7">${l.qty} × ${esc(l.name)}${l.sizeLabel ? ` <span style="color:#ff8a2a">(${esc(l.sizeLabel)})</span>` : ''}${l.options ? `<br><span style="font-size:13px;color:#ffc21a">${esc(l.options)}</span>` : ''}</td>
-      <td style="padding:8px 0;border-bottom:1px solid #3a2a1e;color:#f4e7d7;text-align:right;white-space:nowrap">${l.sum == null ? 'цена при доставка' : fmt(l.sum)}</td>
+      <td style="padding:8px 0;border-bottom:1px solid #3a2a1e;color:#f4e7d7;text-align:right;white-space:nowrap" nowrap>${l.sum == null ? 'цена при доставка' : money(l.sum)}</td>
     </tr>`).join('');
   return `
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:15px">
     ${rows}
     <tr>
-      <td style="padding:12px 0 0;color:#ffc21a;font-weight:bold">Общо${o.hasUnpriced ? ' (без позициите с цена при доставка)' : ''}</td>
-      <td style="padding:12px 0 0;color:#ffc21a;font-weight:bold;text-align:right;font-size:18px">${fmt(o.total)}</td>
+      <td style="padding:12px 8px 0 0;color:#ffc21a;font-weight:bold">Общо${o.hasUnpriced ? ' (без позициите с цена при доставка)' : ''}</td>
+      <td style="padding:12px 0 0;color:#ffc21a;font-weight:bold;text-align:right;font-size:18px;white-space:nowrap" nowrap>${money(o.total)}</td>
     </tr>
   </table>`;
 }
@@ -157,7 +159,7 @@ function customerAcceptedEmail(o) {
     <p style="margin:0 0 12px">Здравей, ${esc(o.name.split(' ')[0])}! Шишът вече се върти за теб.</p>
     <p style="margin:0 0 18px">Номер: <b style="color:#ffc21a">${esc(o.id)}</b><br>
       Доставка: <b>${esc(o.address)}</b> (${D.ORDER.area}), до <b>${D.ORDER.deliveryMinutes} минути</b>.<br>
-      Плащане: <b>${D.ORDER.payment}</b> — приготви <b>${fmt(o.total)}</b>.</p>
+      Плащане: <b>${D.ORDER.payment}</b> — приготви <b style="white-space:nowrap">${money(o.total)}</b>.</p>
     ${itemsTable(o)}
     <p style="margin:18px 0 0;color:#b9a491">Ако нещо не е наред, просто отговори на този имейл.</p>`);
   const text = [

@@ -160,3 +160,17 @@ test('панел: приложение за началния екран, без 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test('панел: при нова версия показва „Обнови“', async ({ page }) => {
+  // локалният сървър е без версия (dev) — подменяме admin.js с версия, различна от admin-version.txt
+  await page.route('**/admin.js', async (route) => {
+    const res = await route.fetch();
+    await route.fulfill({ response: res, body: (await res.text()).replace("const BUILD = 'dev';", "const BUILD = 'old';") });
+  });
+  await page.route('**/admin-version.txt', (route) => route.fulfill({ body: 'new' }));
+  await page.clock.install({ time: new Date(NOW) });
+  await login(page);
+  await expect(page.locator('[data-update]')).toBeHidden();
+  await page.clock.fastForward(61000);
+  await expect(page.locator('[data-update]')).toBeVisible();
+});

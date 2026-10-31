@@ -56,7 +56,8 @@ test('имейл получава само клиентът (номер на п�
   expect(cust.html).toContain('с зеле, домат · сосове: чеснов · + телешко кюфте');
   expect(cust.html).toContain('черна череша');
   expect(cust.html).toContain('Корпус 3');
-  expect(cust.html).toContain('22,50 €');
+  expect(cust.html).toContain('22,50&nbsp;€'); // сумата и „€“ не се разделят на два реда
+  expect(cust.html).toContain('white-space:nowrap" nowrap>22,50&nbsp;€</td>');
   expect(cust.html).toContain('АЕЦ Козлодуй');
   expect(cust.html).toContain('30 минути');
   expect(cust.html).toContain('само в брой');
@@ -68,7 +69,7 @@ test('цените се смятат на сървъра — подправен�
   const r = await handleOrder(good({ items: [{ id: 'duner-royal', size: 0, qty: 1, price: 0.01 }], total: 0.01 }),
     { now: OPEN, env: ENV, fetchImpl, ip: '1.1.1.2' });
   expect(r.json.total).toBe(8);
-  expect(sent[0].body.html).toContain('8,00 €');
+  expect(sent[0].body.html).toContain('8,00&nbsp;€');
 });
 
 test('отказва поръчки извън 8:00–10:00 и в събота', async () => {
@@ -285,4 +286,18 @@ test('поръчка без „Къде да доставим“ се отказ
     expect(r.json.fields.address).toContain('къде да доставим');
   }
   expect(sent).toHaveLength(0);
+});
+
+test('сглобяването за Cloudflare добавя ?v= към снимките (за да не остават стари в кеша)', async () => {
+  const { execFileSync } = require('child_process');
+  const fs = require('fs');
+  execFileSync(process.execPath, ['scripts/build.js'], { cwd: require('path').join(__dirname, '..') });
+  const html = fs.readFileSync('dist/index.html', 'utf8');
+  expect(html).toMatch(/assets\/img\/doner-real-tall\.webp\?v=[0-9a-f]{10}/);
+  expect(html).not.toMatch(/assets\/img\/[a-z0-9-]+\.webp"/);
+  const js = fs.readFileSync('dist/script.js', 'utf8');
+  expect(js).toMatch(/const IMG_V = \{.*"items\/duner-small":"[0-9a-f]{10}"/);
+  expect(fs.readFileSync('dist/styles.css', 'utf8')).toMatch(/coals\.webp\?v=/);
+  const build = fs.readFileSync('dist/admin-version.txt', 'utf8');
+  expect(fs.readFileSync('dist/admin.js', 'utf8')).toContain(`const BUILD = '${build}';`);
 });

@@ -6,6 +6,7 @@
   const POLL_MS = 10000;
   const RING_MS = 8000;
   const TOKEN_KEY = 'db-admin-token';
+  const BUILD = 'dev'; // scripts/build.js слага отпечатъка на панела; при нова версия се показва „Обнови“
 
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
@@ -389,6 +390,17 @@
   }
   setInterval(tick, 1000);
   tick();
+
+  /* --- нова версия на панела (след публикуване) --- */
+  async function checkVersion() {
+    if (BUILD === 'dev' || document.hidden) return;
+    try {
+      const r = await fetch('/admin-version.txt', { cache: 'no-store' });
+      if (r.ok && (await r.text()).trim() !== BUILD) $('[data-update]').hidden = false;
+    } catch { /* без връзка — пак след минута */ }
+  }
+  setInterval(checkVersion, 60000);
+  $('[data-update-btn]').addEventListener('click', () => location.reload());
 
   /* --- приложение на началния екран --- */
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/admin-sw.js', { scope: '/admin' }).catch(() => {});
