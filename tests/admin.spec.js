@@ -74,6 +74,34 @@ test('панел: приемам → доставена; клиентът и с�
   await expect(card.locator('[data-act]')).toHaveCount(0);
 });
 
+test('целият цикъл: клиентът поръчва от сайта → собственикът приема от панела', async ({ page }) => {
+  await page.route('**/api/order', async (route) => {
+    const res = await route.fetch({ headers: { ...route.request().headers(), 'x-test-now': NOW } });
+    await route.fulfill({ response: res });
+  });
+  const name = uniq();
+  await page.goto('/');
+  await page.locator('#shop-tab-drinks').click();
+  await page.locator('[data-product="drink-ayran"] [data-add]').click();
+  await page.fill('#f-name', name);
+  await page.fill('#f-phone', '0888 123 456');
+  await page.fill('#f-email', 'test@example.com');
+  await page.locator('[name="aec"]').check();
+  await page.locator('[name="consent"]').check();
+  await page.locator('[data-submit]').click();
+  await expect(page.locator('[data-done]')).toContainText('Очаквай потвърждение');
+  const id = (await page.locator('[data-done-id]').innerText()).trim();
+  expect(id).toMatch(/^DB-1210-0930-[0-9A-F]{4}$/);
+
+  await login(page);
+  const card = page.locator(`[data-order="${id}"]`);
+  await expect(card).toContainText(name);
+  await expect(card).toContainText('Айрян');
+  await card.locator('[data-act="accept"]').click();
+  await card.locator('[data-act="accept"]').click();
+  await expect(card.locator('.badge')).toHaveText('Приета');
+});
+
 test('панел: отказ с бърза причина', async ({ page, request }) => {
   const id = await placeOrder(request, uniq());
   await login(page);

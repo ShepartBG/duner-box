@@ -1,24 +1,22 @@
 /*
  * POST /api/order — приема поръчка за вкъщи (АЕЦ Козлодуй):
- *   1) записва я като „чакаща“ в хранилището (api/store.js);
- *   2) праща на собственика имейл с бутони „Приемам“ / „Отказвам“ (→ api/decision.js);
- *   3) праща на клиента „Получихме поръчката ти, очаквай потвърждение“.
+ *   1) записва я като „чакаща“ в хранилището (api/store.js) — собственикът я вижда в панела (dunerbox.bg/admin);
+ *   2) праща на клиента „Получихме поръчката ти“ с номера на поръчката.
+ * Собственикът не получава имейли — приема/отказва от панела (api/admin.js), а клиентът получава имейл с решението.
  *
- * Работи като Vercel serverless функция и локално през server.js.
+ * Работи в Cloudflare Worker-а (cloudflare/worker.js) и локално през server.js.
  *
  * Променливи на средата:
  *   RESEND_API_KEY   — ключ за Resend (без него: тестов режим, имейлите само се логват)
  *   RESEND_FROM      — подател, напр. "Duner Box <poruchki@dunerbox.bg>" (домейнът трябва да е верифициран в Resend)
- *   OWNER_EMAIL      — къде да идват поръчките (по подразбиране тестовият адрес)
  *   ALLOWED_ORIGINS  — разрешени сайтове за CORS, разделени със запетая
  *   ALLOW_TEST_CLOCK — "1" само в тестове: позволява хедър x-test-now
- *   ORDER_SECRET     — таен ключ за подписване на линковете за потвърждение (задължителен при истински имейли)
+ *   ORDER_SECRET     — таен ключ за подписване на входа в панела (задължителен при истински имейли)
  */
 const crypto = require('crypto');
 const D = require('../menu-data.js');
 const B = D.BUSINESS;
 
-const DEFAULT_OWNER = 'dunerbox77@abv.bg';
 const DEFAULT_FROM = 'Duner Box <onboarding@resend.dev>';
 const DEFAULT_ORIGINS = 'https://shepartbg.github.io,http://localhost:5173,http://localhost:5174';
 
@@ -91,18 +89,12 @@ function buildOrder(body, now) {
   return { errors, order: { id, name, phone, email, notes, lines, total, hasUnpriced, stamp } };
 }
 
-/* --- подпис на линковете за потвърждение --- */
+/* --- таен ключ (подписва входа в панела) --- */
 const DEV_SECRET = 'dev-only-secret-not-for-production';
 function orderSecret(env) {
   if (env.ORDER_SECRET) return env.ORDER_SECRET;
-  if (env.RESEND_API_KEY) return null; // истински имейли без таен ключ — забранено
+  if (env.RESEND_API_KEY) return null; // продукция без таен ключ — забранено
   return DEV_SECRET;
-}
-function sign(id, secret) {
-  return crypto.createHmac('sha256', secret).update(String(id)).digest('hex').slice(0, 32);
-}
-function decisionLink(baseUrl, id, secret, action) {
-  return `${baseUrl}/api/decision?id=${encodeURIComponent(id)}&sig=${sign(id, secret)}&a=${action}`;
 }
 
 /* --- имейли --- */
@@ -136,40 +128,6 @@ function shell(title, inner) {
       </table>
     </td></tr>
   </table></body></html>`;
-}
-
-function btn(href, label, bg, color = '#ffffff') {
-  return `<a href="${esc(href)}" style="display:inline-block;padding:14px 26px;margin:6px 8px 6px 0;border-radius:999px;background:${bg};color:${color};font-weight:bold;font-size:16px;text-decoration:none">${label}</a>`;
-}
-
-function ownerEmail(o, links) {
-  const html = shell(`Нова поръчка ${esc(o.id)}`, `
-    <p style="margin:0 0 6px"><b>Име:</b> ${esc(o.name)}</p>
-    <p style="margin:0 0 6px"><b>Телефон:</b> <a href="tel:${esc(o.phone.replace(/[^\d+]/g, ''))}" style="color:#ffc21a">${esc(o.phone)}</a></p>
-    <p style="margin:0 0 6px"><b>Имейл:</b> <a href="mailto:${esc(o.email)}" style="color:#ffc21a">${esc(o.email)}</a> <span style="color:#b9a491;font-size:12px">(за да пишеш на клиента, натисни адреса — бутон „Отговор“ стига до Duner Box)</span></p>
-    <p style="margin:0 0 6px"><b>Доставка:</b> ${D.ORDER.area}, до ${D.ORDER.deliveryMinutes} мин. · плащане ${D.ORDER.payment}</p>
-    <p style="margin:0 0 16px"><b>Получена:</b> ${esc(o.stamp)}</p>
-    ${links ? `<div style="margin:0 0 20px;padding:16px;background:#2a1a10;border:1px solid #ff5a1f;border-radius:12px">
-      <p style="margin:0 0 10px;font-size:16px"><b>Клиентът чака потвърждение.</b> Приемаш ли поръчката?</p>
-      ${btn(links.accept, '✅ Приемам', '#2e9e4f')}${btn(links.decline, '❌ Отказвам', '#c22d18')}
-      ${links.panel ? `<p style="margin:10px 0 0;font-size:13px;color:#b9a491">Или от <a href="${esc(links.panel)}" style="color:#ffc21a">панела с поръчките</a>.</p>` : ''}
-    </div>` : ''}
-    ${o.notes ? `<div style="margin:0 0 18px;padding:12px 14px;background:#2a1a10;border-left:3px solid #ffc21a;border-radius:6px"><b>Описание:</b><br>${esc(o.notes).replace(/\n/g, '<br>')}</div>` : ''}
-    ${itemsTable(o)}`);
-  const text = [
-    `Нова поръчка ${o.id} (${o.stamp})`,
-    `Име: ${o.name}`, `Телефон: ${o.phone}`, `Имейл: ${o.email}`,
-    o.notes ? `Описание: ${o.notes}` : '',
-    '', ...o.lines.map((l) => `${l.qty} x ${l.name}${l.sizeLabel ? ` (${l.sizeLabel})` : ''}${l.options ? ` [${l.options}]` : ''} — ${l.sum == null ? 'цена при доставка' : fmt(l.sum)}`),
-    '', `Общо: ${fmt(o.total)}`,
-    ...(links ? ['', `Приемам: ${links.accept}`, `Отказвам: ${links.decline}`] : []),
-  ].filter((x) => x !== null).join('\n');
-  // „Duner Box“ в началото: заглавието да не е само с главни латински букви (SpamAssassin SUBJ_ALL_CAPS)
-  return { subject: `Duner Box: нова поръчка ${o.id} · ${fmt(o.total)} · ${o.name} — потвърди`, html, text };
-}
-
-function customerEmail(o) {
-  return customerReceivedEmail(o);
 }
 
 /* Клиент: веднага след поръчката */
@@ -271,16 +229,10 @@ async function handleOrder(body, { now = new Date(), env = process.env, fetchImp
   const { errors, order } = buildOrder(body, now);
   if (Object.keys(errors).length) return fail(422, 'invalid', 'Провери полетата.', { fields: errors });
 
-  const secret = orderSecret(env);
-  if (!secret) {
+  if (!orderSecret(env)) {
     console.error('[order] липсва ORDER_SECRET');
     return fail(500, 'config', 'Поръчките временно не работят. Опитай по-късно.');
   }
-  const links = {
-    accept: decisionLink(baseUrl, order.id, secret, 'accept'),
-    decline: decisionLink(baseUrl, order.id, secret, 'decline'),
-    panel: `${baseUrl}/admin`,
-  };
   if (store) {
     try {
       // recordedAt = истинският час (тестовият часовник служи само за прозореца 8–10)
@@ -291,29 +243,19 @@ async function handleOrder(body, { now = new Date(), env = process.env, fetchImp
     }
   }
 
-  const owner = ownerEmail(order, links);
+  // поръчката вече е в панела — имейл получава само клиентът (номер на поръчката)
   const cust = customerReceivedEmail(order);
   const from = env.RESEND_FROM || DEFAULT_FROM;
-  const ownerTo = env.OWNER_EMAIL || DEFAULT_OWNER;
-  const emails = [
-    { from, to: [ownerTo], subject: owner.subject, html: owner.html, text: owner.text },
-    { from, to: [order.email], subject: cust.subject, html: cust.html, text: cust.text },
-  ];
+  const emails = [{ from, to: [order.email], subject: cust.subject, html: cust.html, text: cust.text }];
 
   if (!env.RESEND_API_KEY) {
-    console.log(`[order] ТЕСТОВ РЕЖИМ (няма RESEND_API_KEY) — ${order.id}, ${fmt(order.total)}\n${owner.text}`);
-    return { status: 200, json: { ok: true, orderId: order.id, total: order.total, dryRun: true, pending: true }, emails, links };
+    console.log(`[order] ТЕСТОВ РЕЖИМ (няма RESEND_API_KEY) — ${order.id}, ${fmt(order.total)}`);
+    return { status: 200, json: { ok: true, orderId: order.id, total: order.total, dryRun: true, pending: true }, emails };
   }
 
-  try {
-    await sendEmail(env, fetchImpl, emails[0]);
-  } catch (e) {
-    console.error('[order] owner email failed', e.message);
-    return fail(502, 'email_failed', 'Поръчката не можа да бъде изпратена. Опитай отново след минута.');
-  }
   let customerEmailSent = true;
   try {
-    await sendEmail(env, fetchImpl, emails[1]);
+    await sendEmail(env, fetchImpl, emails[0]);
   } catch (e) {
     customerEmailSent = false;
     console.error('[order] customer email failed', e.message);
@@ -373,6 +315,6 @@ module.exports = handler;
 module.exports.handleOrder = handleOrder;
 module.exports.buildOrder = buildOrder;
 Object.assign(module.exports, {
-  sign, orderSecret, sendEmail, shell, itemsTable, esc, fmt, DEFAULT_FROM, DEFAULT_OWNER,
+  orderSecret, sendEmail, shell, itemsTable, esc, fmt, DEFAULT_FROM,
   customerAcceptedEmail, customerDeclinedEmail,
 });

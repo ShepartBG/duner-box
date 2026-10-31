@@ -30,48 +30,37 @@ function fakeResend(fail = []) {
   };
   return { sent, fetchImpl };
 }
-const ENV = { RESEND_API_KEY: 're_test', RESEND_FROM: 'Duner Box <poruchki@dunerbox.bg>', OWNER_EMAIL: 'jeki.1997@abv.bg', ORDER_SECRET: 'test-secret' };
+const ENV = { RESEND_API_KEY: 're_test', RESEND_FROM: 'Duner Box <poruchki@dunerbox.bg>', ORDER_SECRET: 'test-secret' };
 
-test('изпраща 2 имейла: към собственика и към клиента', async () => {
+test('имейл получава само клиентът (номер на поръчката) — собственикът не', async () => {
   const { sent, fetchImpl } = fakeResend();
   const r = await handleOrder(good(), { now: OPEN, env: ENV, fetchImpl, ip: '1.1.1.1' });
   expect(r.status).toBe(200);
   expect(r.json.ok).toBe(true);
   expect(r.json.total).toBe(22.5); // 2 × (6 + 2 кюфте) + 2,50 + 1 яйце + 2 × 1,50
-  expect(sent).toHaveLength(2);
-  expect(sent.every((s) => s.url === 'https://api.resend.com/emails' && s.auth === 'Bearer re_test')).toBe(true);
+  expect(sent).toHaveLength(1);
+  expect(sent[0].url).toBe('https://api.resend.com/emails');
+  expect(sent[0].auth).toBe('Bearer re_test');
 
-  const [owner, cust] = sent.map((s) => s.body);
-  expect(owner.to).toEqual(['jeki.1997@abv.bg']);
-  // „Отговор“ винаги към нашия домейн — Reply-To към безплатна поща сваля точки при спам филтрите
-  expect(owner.reply_to).toBe('poruchki@dunerbox.bg');
-  expect(cust.reply_to).toBe('poruchki@dunerbox.bg');
-  expect(owner.headers['List-Unsubscribe']).toBe('<mailto:poruchki@dunerbox.bg?subject=unsubscribe>');
-  expect(owner.subject).toMatch(/^Duner Box: нова поръчка/);
-  expect(owner.html).toContain('mailto:maria@example.com');
-  expect(owner.from).toBe('Duner Box <poruchki@dunerbox.bg>');
-  expect(owner.subject).toContain('нова поръчка');
-  expect(owner.subject).toContain('22,50 €');
-  expect(owner.html).toContain('2 × Хел');
-  expect(owner.html).toContain('черна череша');
-  expect(owner.html).toContain('Мария Иванова');
-  expect(owner.html).toContain('+359 888 123 456');
-  expect(owner.html).toContain('Корпус 3');
-  expect(owner.html).toContain('2 × Тарикатски');
-  expect(owner.html).toContain('голям');
-  expect(owner.html).toContain('с зеле, домат · сосове: чеснов · + телешко кюфте');
-  expect(owner.html).toContain('сосове: кетчуп');
-  expect(owner.text).toContain('[с зеле, домат · сосове: чеснов · + телешко кюфте]');
-
+  const cust = sent[0].body;
   expect(cust.to).toEqual(['maria@example.com']);
-  expect(cust.subject).toContain('получихме поръчка');
+  expect(cust.from).toBe('Duner Box <poruchki@dunerbox.bg>');
+  // „Отговор“ винаги към нашия домейн — Reply-To към безплатна поща сваля точки при спам филтрите
+  expect(cust.reply_to).toBe('poruchki@dunerbox.bg');
+  expect(cust.headers['List-Unsubscribe']).toBe('<mailto:poruchki@dunerbox.bg?subject=unsubscribe>');
+  expect(cust.subject).toBe(`Duner Box: получихме поръчка ${r.json.orderId}`);
+  expect(cust.subject).not.toMatch(/\p{Extended_Pictographic}/u); // без емоджи в заглавието
+  expect(cust.html).toContain(r.json.orderId);
   expect(cust.html).toContain('Очаквай потвърждение');
-  expect(owner.html).toContain('✅ Приемам');
-  expect(owner.html).toContain('❌ Отказвам');
-  expect(owner.subject).not.toMatch(/\p{Extended_Pictographic}/u); // без емоджи в заглавието
+  expect(cust.html).toContain('2 × Тарикатски');
+  expect(cust.html).toContain('с зеле, домат · сосове: чеснов · + телешко кюфте');
+  expect(cust.html).toContain('черна череша');
+  expect(cust.html).toContain('Корпус 3');
+  expect(cust.html).toContain('22,50 €');
   expect(cust.html).toContain('АЕЦ Козлодуй');
   expect(cust.html).toContain('30 минути');
   expect(cust.html).toContain('само в брой');
+  expect(cust.html).not.toContain('Приемам');
 });
 
 test('цените се смятат на сървъра — подправени цени от клиента се игнорират', async () => {
@@ -132,24 +121,20 @@ test('отказва празна количка, непознати позиц�
 
 test('екранира HTML в данните на клиента', async () => {
   const { sent, fetchImpl } = fakeResend();
-  await handleOrder(good({ name: 'Иван <script>x</script>', notes: '<img src=x onerror=alert(1)>' }), { now: OPEN, env: ENV, fetchImpl, ip: '1.1.1.5' });
+  await handleOrder(good({ name: '<script>x</script> Иван', notes: '<img src=x onerror=alert(1)>' }), { now: OPEN, env: ENV, fetchImpl, ip: '1.1.1.5' });
   expect(sent[0].body.html).not.toContain('<script>');
   expect(sent[0].body.html).not.toContain('<img src=x');
   expect(sent[0].body.html).toContain('&lt;script&gt;');
 });
 
-test('ако имейлът към собственика не мине, клиентът получава грешка', async () => {
-  const { sent, fetchImpl } = fakeResend([0]);
-  const r = await handleOrder(good(), { now: OPEN, env: ENV, fetchImpl, ip: '1.1.1.6' });
-  expect(r.status).toBe(502);
-  expect(sent).toHaveLength(1);
-});
-
-test('ако само потвърждението към клиента не мине, поръчката пак е приета', async () => {
-  const { fetchImpl } = fakeResend([1]);
-  const r = await handleOrder(good(), { now: OPEN, env: ENV, fetchImpl, ip: '1.1.1.7' });
+test('ако имейлът до клиента не мине, поръчката пак е записана и приета', async () => {
+  const { fetchImpl } = fakeResend([0]);
+  const { memoryStore } = require('../api/store.js');
+  const store = memoryStore();
+  const r = await handleOrder(good(), { now: OPEN, env: ENV, fetchImpl, store, ip: '1.1.1.7' });
   expect(r.status).toBe(200);
   expect(r.json.customerEmailSent).toBe(false);
+  expect((await store.get(r.json.orderId)).status).toBe('pending'); // вижда се в панела
 });
 
 test('без RESEND_API_KEY работи в тестов режим и не праща нищо', async () => {
@@ -157,7 +142,8 @@ test('без RESEND_API_KEY работи в тестов режим и не пр
   const r = await handleOrder(good(), { now: OPEN, env: {}, fetchImpl, ip: '1.1.1.8' });
   expect(r.status).toBe(200);
   expect(r.json.dryRun).toBe(true);
-  expect(r.emails[0].to).toEqual(['dunerbox77@abv.bg']);
+  expect(r.emails).toHaveLength(1);
+  expect(r.emails[0].to).toEqual(['maria@example.com']);
   expect(sent).toHaveLength(0);
 });
 
@@ -234,7 +220,7 @@ const workerEnv = (extra = {}) => ({
 });
 const post = (url, body, headers = {}) => new Request(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body });
 
-test('Worker: поръчка → запис в KV с изтичане след 90 дни → решение', async () => {
+test('Worker: поръчка → запис в KV с изтичане след 90 дни', async () => {
   const w = await loadWorker();
   const env = workerEnv({ ALLOW_TEST_CLOCK: '1' });
   const r = await w.fetch(post('https://dunerbox.bg/api/order', JSON.stringify(good()), { 'x-test-now': '2026-10-12T09:30:00+03:00', 'cf-connecting-ip': '5.5.5.5' }), env);
@@ -245,17 +231,7 @@ test('Worker: поръчка → запис в KV с изтичане след 9
   const saved = JSON.parse(env.ORDERS.data.get(j.orderId));
   expect(saved.status).toBe('pending');
 
-  const { sign } = require('../api/order.js');
-  const sig = sign(j.orderId, 'worker-secret');
-  const page = await w.fetch(new Request(`https://dunerbox.bg/api/decision?id=${j.orderId}&sig=${sig}&a=accept`), env);
-  expect(page.status).toBe(200);
-  expect(await page.text()).toContain('Потвърди — приемам');
-  const done = await w.fetch(new Request('https://dunerbox.bg/api/decision', {
-    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ id: j.orderId, sig, a: 'accept' }).toString(),
-  }), env);
-  expect(await done.text()).toContain('е приета');
-  expect(JSON.parse(env.ORDERS.data.get(j.orderId)).status).toBe('accepted');
+  expect(env.ORDERS.data.has('idx:DB-1210-')).toBe(true); // индексът за деня (за панела)
 });
 
 test('Worker: тестовият часовник работи само с ALLOW_TEST_CLOCK=1; грешни заявки; www → dunerbox.bg', async () => {

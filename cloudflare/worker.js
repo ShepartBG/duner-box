@@ -1,18 +1,15 @@
 /*
  * Cloudflare Worker за dunerbox.bg.
- *   /api/order    → api/order.js    (поръчка + имейли през Resend)
- *   /api/decision → api/decision.js (собственикът приема/отказва)
- *   /api/admin/*  → api/admin.js    (панелът за поръчки, dunerbox.bg/admin)
+ *   /api/order    → api/order.js    (поръчка + имейл до клиента през Resend)
+ *   /api/admin/*  → api/admin.js    (панелът за поръчки, dunerbox.bg/admin — приема/отказва)
  *   всичко друго  → статичните файлове от dist/
  * Поръчките се пазят в Workers KV (binding ORDERS) и се изтриват автоматично след 90 дни.
- * Тайни (wrangler secret put): RESEND_API_KEY, RESEND_FROM, OWNER_EMAIL, ORDER_SECRET, ADMIN_PASSWORD.
+ * Тайни (wrangler secret put): RESEND_API_KEY, RESEND_FROM, ORDER_SECRET, ADMIN_PASSWORD.
  */
 import order from '../api/order.js';
-import decision from '../api/decision.js';
 import admin from '../api/admin.js';
 
 const { handleOrder } = order;
-const { handleDecision } = decision;
 const { handleAdmin } = admin;
 
 /*
@@ -77,19 +74,6 @@ async function orderRoute(request, env, url) {
   return json(result.status, result.json);
 }
 
-async function decisionRoute(request, env, url) {
-  let params = Object.fromEntries(url.searchParams);
-  if (request.method === 'POST') {
-    const raw = (await request.text()).slice(0, 20000);
-    params = Object.fromEntries(new URLSearchParams(raw));
-  }
-  const r = await handleDecision({ method: request.method, params }, { env, store: kvStore(env.ORDERS), now: clock(request, env) });
-  return new Response(r.html, {
-    status: r.status,
-    headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' },
-  });
-}
-
 async function adminRoute(request, env, url) {
   let body = {};
   if (request.method === 'POST') {
@@ -114,7 +98,6 @@ export default {
       return Response.redirect(`https://dunerbox.bg${url.pathname}${url.search}`, 301);
     }
     if (url.pathname === '/api/order') return orderRoute(request, env, url);
-    if (url.pathname === '/api/decision') return decisionRoute(request, env, url);
     if (url.pathname.startsWith('/api/admin/')) return adminRoute(request, env, url);
     return env.ASSETS.fetch(request);
   },

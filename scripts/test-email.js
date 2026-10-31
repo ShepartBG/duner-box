@@ -1,8 +1,8 @@
 /*
  * Праща една истинска тестова поръчка през Resend:  npm run test-email
- * Чете RESEND_API_KEY, RESEND_FROM и OWNER_EMAIL от .env.
- * И двата имейла (към собственика и към „клиента“) отиват на OWNER_EMAIL,
- * освен ако не подадеш друг адрес за клиента:  npm run test-email -- client@example.com
+ * Чете RESEND_API_KEY и RESEND_FROM от .env. Праща само имейла „Получихме поръчката“ до клиента.
+ * По подразбиране отива на jeki.1997@abv.bg (тестовият адрес),
+ * или на друг адрес:  npm run test-email -- client@example.com
  */
 require('../load-env.js');
 const { handleOrder } = require('../api/order.js');
@@ -17,7 +17,7 @@ const { handleOrder } = require('../api/order.js');
     console.error('Липсва RESEND_FROM в .env (напр. Duner Box <poruchki@твоят-домейн.bg>)');
     process.exitCode = 1; return;
   }
-  const customer = process.argv[2] || env.OWNER_EMAIL || 'jeki.1997@abv.bg';
+  const customer = process.argv[2] || 'jeki.1997@abv.bg';
   // фиксиран час в прозореца за поръчки, за да може тестът да мине по всяко време
   const now = new Date();
   const sofia = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Sofia' }));
@@ -39,7 +39,7 @@ const { handleOrder } = require('../api/order.js');
 
   console.log(`Статус: ${r.status}`, r.json);
   if (r.json.ok) {
-    console.log(`Поръчка ${r.json.orderId}: имейл към собственика → ${env.OWNER_EMAIL || 'jeki.1997@abv.bg'}, потвърждение → ${customer}`);
+    console.log(`Поръчка ${r.json.orderId}: потвърждение → ${customer}`);
   }
   process.exitCode = r.json.ok && r.json.customerEmailSent !== false ? 0 : 1;
 })();

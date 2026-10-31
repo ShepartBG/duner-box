@@ -13,7 +13,6 @@ const IGNORED = /node_modules|tests|test-results|screenshots|playwright-report|\
 // тези папки не се сервират като статични файлове
 const PRIVATE = /^(cloudflare|newphotos|api|scripts|\.env[^\\/]*|photos|node_modules|tests|test-results|screenshots|playwright-report|\.git)([\\/]|$)/;
 const orderApi = require('./api/order.js');
-const decisionApi = require('./api/decision.js');
 const adminApi = require('./api/admin.js');
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
@@ -53,7 +52,6 @@ http.createServer((req, res) => {
   }
 
   if (url === '/api/order') return orderApi(req, res);
-  if (url === '/api/decision') return decisionApi(req, res);
   if (url.startsWith('/api/admin/')) return adminApi(req, res);
 
   // като в Cloudflare: /admin → admin.html, /privacy → privacy.html

@@ -1,4 +1,4 @@
-// Cloudflare: статичните файлове от dist/ + Worker за /api/order и /api/decision.
+// Cloudflare: статичните файлове от dist/ + Worker за /api/order и /api/admin/*.
 // Качване: npm run deploy   (тестова версия: npm run deploy:test)
 {
   "name": "dunerbox",

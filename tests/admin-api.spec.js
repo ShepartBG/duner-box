@@ -2,11 +2,9 @@
 const { test, expect } = require('@playwright/test');
 const { handleOrder } = require('../api/order.js');
 const { handleAdmin } = require('../api/admin.js');
-const { handleDecision } = require('../api/decision.js');
 const { memoryStore } = require('../api/store.js');
-const { sign } = require('../api/order.js');
 
-const ENV = { RESEND_API_KEY: 're_test', RESEND_FROM: 'Duner Box <poruchki@dunerbox.bg>', OWNER_EMAIL: 'owner@example.com', ORDER_SECRET: 'test-secret', ADMIN_PASSWORD: 'тайна-123' };
+const ENV = { RESEND_API_KEY: 're_test', RESEND_FROM: 'Duner Box <poruchki@dunerbox.bg>', ORDER_SECRET: 'test-secret', ADMIN_PASSWORD: 'тайна-123' };
 const OPEN = new Date('2026-10-12T09:15:00+03:00');
 const body = (name = 'Мария Иванова') => ({
   name, phone: '0888 123 456', email: 'maria@example.com', notes: 'Корпус 3', consent: true, aec: true,
@@ -116,14 +114,27 @@ test('отказ от панела с причина', async () => {
   expect(s.sent[0].html).toContain('Много поръчки в момента');
 });
 
-test('панелът и линкът от имейла не могат да решат една поръчка два пъти', async () => {
+test('причината за отказ се екранира в имейла до клиента', async () => {
   const s = setup();
   const { json } = await s.order();
   const token = await login(s);
-  await s.call({ method: 'POST', action: 'decide', body: { id: json.orderId, action: 'decline' }, token });
-  const page = await handleDecision({ method: 'POST', params: { id: json.orderId, sig: sign(json.orderId, 'test-secret'), a: 'accept' } }, s.ctx);
-  expect(page.html).toContain('Вече е отказана');
-  expect((await s.store.get(json.orderId)).status).toBe('declined');
+  s.sent.length = 0;
+  await s.call({ method: 'POST', action: 'decide', body: { id: json.orderId, action: 'decline', reason: 'Свърши кюфтето <b>' }, token });
+  expect(s.sent[0].html).toContain('Свърши кюфтето &lt;b&gt;');
+  expect(s.sent[0].html).not.toContain('<b>Свърши');
+});
+
+test('две устройства едновременно: само едното решение минава, клиентът получава един имейл', async () => {
+  const s = setup();
+  const { json } = await s.order();
+  const token = await login(s);
+  s.sent.length = 0;
+  const [a, b] = await Promise.all([
+    s.call({ method: 'POST', action: 'decide', body: { id: json.orderId, action: 'accept' }, token }),
+    s.call({ method: 'POST', action: 'decide', body: { id: json.orderId, action: 'accept' }, token }),
+  ]);
+  expect([a.status, b.status].sort()).toEqual([200, 409]);
+  expect(s.sent).toHaveLength(1);
 });
 
 test('„Доставена“ — само за приета поръчка', async () => {
@@ -149,8 +160,11 @@ test('невалиден номер или действие → грешка, н
   expect((await s.store.get(json.orderId)).status).toBe('pending');
 });
 
-test('имейлът до собственика има линк към панела', async () => {
+test('собственикът не получава имейли — нито при поръчка, нито при решение', async () => {
   const s = setup();
-  await s.order();
-  expect(s.sent[0].html).toContain('href="https://dunerbox.bg/admin"');
+  const { json } = await s.order();
+  const token = await login(s);
+  await s.call({ method: 'POST', action: 'decide', body: { id: json.orderId, action: 'accept' }, token });
+  await s.call({ method: 'POST', action: 'status', body: { id: json.orderId, status: 'delivered' }, token });
+  expect(s.sent.map((m) => m.to[0])).toEqual(['maria@example.com', 'maria@example.com']);
 });
