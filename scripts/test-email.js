@@ -27,7 +27,7 @@ const { handleOrder } = require('../api/order.js');
   }
 
   const r = await handleOrder({
-    name: 'ТЕСТ Тестов', phone: '0888 123 456', email: customer, consent: true, aec: true,
+    name: 'ТЕСТ Тестов', phone: '0888 123 456', email: customer, address: 'ТЕСТ — Сграда 2', consent: true, aec: true,
     notes: 'ТЕСТОВА ПОРЪЧКА — моля, игнорирайте. Сграда 2, без лук.',
     items: [
       { id: 'duner-royal', size: 0, qty: 1, opts: { ingredients: ['зеле', 'краставица', 'домат', 'маруля', 'лук пържен', 'картофи', 'месо', 'кисела краставичка'], sauces: ['чеснов', 'люто'], extras: ['extra-bacon'] } },

@@ -442,6 +442,7 @@ function validate(data) {
   const digits = data.phone.replace(/[^\d]/g, '');
   if (!/^[+\d\s()\-/]+$/.test(data.phone.trim()) || digits.length < 9 || digits.length > 15) errs.phone = 'Въведи валиден телефон.';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email.trim())) errs.email = 'Въведи валиден имейл.';
+  if (data.address.trim().length < 3) errs.address = 'Напиши къде да доставим (сграда, отдел, етаж).';
   if (!data.aec) errs.aec = 'Потвърди, че доставката е в АЕЦ Козлодуй.';
   if (!data.consent) errs.consent = 'Нужно е съгласие за обработка на данните.';
   return errs;
@@ -457,7 +458,7 @@ function initForm() {
     const fd = new FormData(form);
     const data = {
       name: String(fd.get('name') || ''), phone: String(fd.get('phone') || ''),
-      email: String(fd.get('email') || ''), notes: String(fd.get('notes') || ''),
+      email: String(fd.get('email') || ''), address: String(fd.get('address') || ''), notes: String(fd.get('notes') || ''),
       website: String(fd.get('website') || ''), aec: fd.get('aec') === 'on', consent: fd.get('consent') === 'on',
       items: cart.lines.map((l) => ({ id: l.id, size: l.size, qty: l.qty, ...(l.flavor ? { flavor: l.flavor } : {}), ...(l.opts ? { opts: l.opts } : {}) })),
     };
@@ -821,11 +822,13 @@ const sticker = $('[data-sticker] b');
 if (royal && sticker) sticker.textContent = eur(royal.prices[0]);
 const { phone } = window.DUNER.BUSINESS;
 if (phone) {
-  const box = $('[data-phone]');
-  const a = $('[data-phone-link]');
-  a.textContent = phone;
-  a.href = 'tel:' + phone.replace(/[^d+]/g, '');
-  box.hidden = false;
+  // в „Контакти“ и във футъра
+  $$('[data-phone]').forEach((box) => {
+    const a = $('[data-phone-link]', box);
+    a.textContent = phone;
+    a.href = 'tel:' + phone.replace(/[^\d+]/g, '');
+    box.hidden = false;
+  });
 }
 const yr = $('[data-year]');
 if (yr) yr.textContent = new Date().getFullYear();

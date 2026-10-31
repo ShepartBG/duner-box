@@ -195,6 +195,7 @@
           <span class="ord__name">${esc(o.name)}</span>
           <a class="ord__phone" href="tel:${esc(tel)}">📞 ${esc(o.phone)}</a>
         </div>
+        ${o.address ? `<p class="ord__addr">📍 ${esc(o.address)}</p>` : ''}
         ${o.notes ? `<p class="ord__notes">${esc(o.notes)}</p>` : ''}
         <ul class="ord__lines">${lines}</ul>
         <div class="ord__total"><span>Общо${o.hasUnpriced ? '*' : ''}</span><span>${fmt(o.total)}</span></div>

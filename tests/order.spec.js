@@ -19,10 +19,11 @@ async function addFood(page, id, { size, all, ingredients = [], sauces = [], ext
   await expect(d).toBeHidden();
 }
 
-async function fillForm(page, { name = 'Иван Петров', phone = '0888 123 456', email = 'ivan@example.com', notes = 'Сграда 2, без лук', consent = true } = {}) {
+async function fillForm(page, { name = 'Иван Петров', phone = '0888 123 456', email = 'ivan@example.com', address = 'Сграда 2, отдел ТО', notes = 'Без лук', consent = true } = {}) {
   await page.fill('#f-name', name);
   await page.fill('#f-phone', phone);
   await page.fill('#f-email', email);
+  await page.fill('#f-address', address);
   await page.fill('#f-notes', notes);
   if (consent) await page.locator('[name="aec"]').check();
   if (consent) await page.locator('[name="consent"]').check();
@@ -223,11 +224,12 @@ test.describe('Поръчки за АЕЦ', () => {
     await page.clock.setFixedTime(AT('09:30'));
     await page.goto('/');
     await addFood(page, 'duner-small');
-    await fillForm(page, { name: '', phone: '123', email: 'не-е-имейл', consent: false });
+    await fillForm(page, { name: '', phone: '123', email: 'не-е-имейл', address: '', consent: false });
     await page.locator('[data-submit]').click();
     await expect(page.locator('[data-err="name"]')).toHaveText('Въведи имената си.');
     await expect(page.locator('[data-err="phone"]')).toHaveText('Въведи валиден телефон.');
     await expect(page.locator('[data-err="email"]')).toHaveText('Въведи валиден имейл.');
+    await expect(page.locator('[data-err="address"]')).toHaveText('Напиши къде да доставим (сграда, отдел, етаж).');
     await expect(page.locator('[data-err="consent"]')).not.toBeEmpty();
     await expect(page.locator('[data-err="aec"]')).toHaveText('Потвърди, че доставката е в АЕЦ Козлодуй.');
     await expect(page.locator('#f-name')).toBeFocused();
@@ -255,7 +257,7 @@ test.describe('Поръчки за АЕЦ', () => {
 
     expect(bodies).toHaveLength(1);
     expect(bodies[0]).toMatchObject({
-      name: 'Иван Петров', phone: '0888 123 456', email: 'ivan@example.com', notes: 'Сграда 2, без лук', consent: true, aec: true,
+      name: 'Иван Петров', phone: '0888 123 456', email: 'ivan@example.com', address: 'Сграда 2, отдел ТО', notes: 'Без лук', consent: true, aec: true,
     });
     expect(bodies[0].items).toHaveLength(3);
     expect(bodies[0].items[0]).toMatchObject({ id: 'duner-royal', size: 0, qty: 1, opts: { sauces: ['люто'], extras: [] } });

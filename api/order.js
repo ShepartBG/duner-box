@@ -43,12 +43,14 @@ function buildOrder(body, now) {
   const name = String(body.name || '').trim().replace(/\s+/g, ' ');
   const phone = String(body.phone || '').trim();
   const email = String(body.email || '').trim().toLowerCase();
+  const address = String(body.address || '').trim().replace(/\s+/g, ' ');
   const notes = String(body.notes || '').trim().slice(0, 600);
 
   if (name.length < 3 || name.length > 80) errors.name = 'Въведи имената си.';
   const digits = phone.replace(/[^\d]/g, '');
   if (!/^[+\d\s()\-/]+$/.test(phone) || digits.length < 9 || digits.length > 15) errors.phone = 'Въведи валиден телефон.';
   if (!EMAIL_RE.test(email) || email.length > 120) errors.email = 'Въведи валиден имейл.';
+  if (address.length < 3 || address.length > 150) errors.address = 'Напиши къде да доставим (сграда, отдел, етаж).';
   if (body.aec !== true) errors.aec = 'Доставяме само в АЕЦ Козлодуй — потвърди адреса.';
   if (body.consent !== true) errors.consent = 'Нужно е съгласие за обработка на данните.';
 
@@ -86,7 +88,7 @@ function buildOrder(body, now) {
     .formatToParts(now).reduce((o, x) => ({ ...o, [x.type]: x.value }), {});
   const id = `DB-${p.day}${p.month}-${p.hour}${p.minute}-${crypto.randomBytes(3).toString('hex').toUpperCase().slice(0, 4)}`;
 
-  return { errors, order: { id, name, phone, email, notes, lines, total, hasUnpriced, stamp } };
+  return { errors, order: { id, name, phone, email, address, notes, lines, total, hasUnpriced, stamp } };
 }
 
 /* --- таен ключ (подписва входа в панела) --- */
@@ -136,11 +138,13 @@ function customerReceivedEmail(o) {
     <p style="margin:0 0 12px">Здравей, ${esc(o.name.split(' ')[0])}! Поръчката ти е при нас.</p>
     <p style="margin:0 0 18px">Номер: <b style="color:#ffc21a">${esc(o.id)}</b><br>
       <b>Очаквай потвърждение по имейл до няколко минути.</b> След потвърждението доставяме до <b>${D.ORDER.deliveryMinutes} минути</b> в ${D.ORDER.area}.<br>
+      Доставка до: <b>${esc(o.address)}</b><br>
       Плащане: <b>${D.ORDER.payment}</b>.</p>
     ${itemsTable(o)}
-    ${o.notes ? `<p style="margin:18px 0 0;color:#b9a491"><b>Твоето описание:</b> ${esc(o.notes).replace(/\n/g, '<br>')}</p>` : ''}`);
+    ${o.notes ? `<p style="margin:18px 0 0;color:#b9a491"><b>Твоите бележки:</b> ${esc(o.notes).replace(/\n/g, '<br>')}</p>` : ''}`);
   const text = [
     `Получихме поръчката ти! Номер: ${o.id}`,
+    `Доставка до: ${o.address}`,
     'Очаквай потвърждение по имейл до няколко минути.',
     '', ...o.lines.map(lineText), '', `Общо: ${fmt(o.total)}`,
   ].join('\n');
@@ -152,13 +156,13 @@ function customerAcceptedEmail(o) {
   const html = shell('Поръчката ти е приета! 🔥', `
     <p style="margin:0 0 12px">Здравей, ${esc(o.name.split(' ')[0])}! Шишът вече се върти за теб.</p>
     <p style="margin:0 0 18px">Номер: <b style="color:#ffc21a">${esc(o.id)}</b><br>
-      Доставка: <b>${D.ORDER.area}</b>, до <b>${D.ORDER.deliveryMinutes} минути</b>.<br>
+      Доставка: <b>${esc(o.address)}</b> (${D.ORDER.area}), до <b>${D.ORDER.deliveryMinutes} минути</b>.<br>
       Плащане: <b>${D.ORDER.payment}</b> — приготви <b>${fmt(o.total)}</b>.</p>
     ${itemsTable(o)}
     <p style="margin:18px 0 0;color:#b9a491">Ако нещо не е наред, просто отговори на този имейл.</p>`);
   const text = [
     `Поръчката ти е приета! Номер: ${o.id}`,
-    `Доставка: ${D.ORDER.area}, до ${D.ORDER.deliveryMinutes} минути. Плащане: ${D.ORDER.payment}.`,
+    `Доставка: ${o.address} (${D.ORDER.area}), до ${D.ORDER.deliveryMinutes} минути. Плащане: ${D.ORDER.payment}.`,
     '', ...o.lines.map(lineText), '', `Общо: ${fmt(o.total)}`,
   ].join('\n');
   return { subject: `Duner Box: поръчка ${o.id} е приета — идва до ${D.ORDER.deliveryMinutes} мин.`, html, text };

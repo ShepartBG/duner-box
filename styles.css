@@ -250,6 +250,9 @@ p{margin:0 0 1em}
 .visit__info{padding:30px;display:flex;flex-direction:column;gap:26px}
 .visit__row{display:flex;gap:16px;align-items:flex-start}
 .visit__row h3{font-size:1.2rem;margin-bottom:8px;color:var(--gold)}
+.visit__contact{margin:0 0 4px;overflow-wrap:anywhere}
+.visit__contact a{color:var(--text);font-weight:600}
+.visit__contact a:hover{color:var(--gold)}
 .visit address{font-style:normal;font-size:1.05rem}
 .grow{flex:1;min-width:0}
 .hours{width:100%;border-collapse:collapse;font-size:.96rem}

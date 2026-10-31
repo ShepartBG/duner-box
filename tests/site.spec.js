@@ -415,7 +415,10 @@ test('данните на фирмата са във футъра и в съгл
   await expect(f).toContainText('ЕИК 206587193');
   await expect(f).toContainText('ул. Търговска 77, 3320 Козлодуй');
   await expect(page.locator('.check:not(.check--aec)')).toContainText('Станислав Стоянов-94');
-  await expect(page.locator('[data-phone]')).toBeHidden(); // няма телефон засега
+  await expect(page.locator('[data-phone]')).toHaveCount(2);
+  for (const p of await page.locator('[data-phone]').all()) await expect(p).toBeHidden(); // няма телефон засега
+  await expect(page.locator('#contacts a[href="mailto:dunerbox77@abv.bg"]')).toHaveText('dunerbox77@abv.bg');
+  await expect(page.locator('.footer__contact a[href="mailto:dunerbox77@abv.bg"]')).toBeVisible();
 });
 
 test('ясно е, че доставката е само до АЕЦ Козлодуй', async ({ page }) => {

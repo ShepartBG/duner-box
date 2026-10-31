@@ -9,7 +9,7 @@ const CLOSED = new Date('2026-10-12T10:00:00+03:00'); // понеделник 10
 const SAT = new Date('2026-10-17T09:30:00+03:00');    // събота 9:30
 
 const good = (over = {}) => ({
-  name: 'Мария Иванова', phone: '+359 888 123 456', email: 'maria@example.com', notes: 'Корпус 3', consent: true, aec: true,
+  name: 'Мария Иванова', phone: '+359 888 123 456', email: 'maria@example.com', address: 'Корпус 3', notes: 'Без лук', consent: true, aec: true,
   items: [
     { id: 'sand-tarikatski', size: 1, qty: 2, opts: { ingredients: ['зеле', 'домат'], sauces: ['чеснов'], extras: ['extra-kofte'] } },
     { id: 'side-fries', size: 0, qty: 1, opts: { sauces: ['кетчуп'] } },
@@ -274,5 +274,15 @@ test('поръчка без потвърждение за АЕЦ се отказ
   const r = await handleOrder(good({ aec: false }), { now: OPEN, env: ENV, fetchImpl, ip: '7.7.7.8' });
   expect(r.status).toBe(422);
   expect(r.json.fields.aec).toContain('АЕЦ Козлодуй');
+  expect(sent).toHaveLength(0);
+});
+
+test('поръчка без „Къде да доставим“ се отказва', async () => {
+  const { sent, fetchImpl } = fakeResend();
+  for (const address of ['', '  ', 'x', 'а'.repeat(151)]) {
+    const r = await handleOrder(good({ address }), { now: OPEN, env: ENV, fetchImpl, ip: '7.7.7.9' });
+    expect(r.status).toBe(422);
+    expect(r.json.fields.address).toContain('къде да доставим');
+  }
   expect(sent).toHaveLength(0);
 });

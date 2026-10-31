@@ -59,8 +59,8 @@ function sofiaDay(now) {
 
 // само полетата, нужни на панела
 function view(o) {
-  const { id, name, phone, email, notes, lines, total, hasUnpriced, stamp, status, createdAt, decidedAt, decidedStamp, reason, deliveredAt } = o;
-  return { id, name, phone, email, notes, lines, total, hasUnpriced, stamp, status, createdAt, decidedAt, decidedStamp, reason, deliveredAt };
+  const { id, name, phone, email, address, notes, lines, total, hasUnpriced, stamp, status, createdAt, decidedAt, decidedStamp, reason, deliveredAt } = o;
+  return { id, name, phone, email, address, notes, lines, total, hasUnpriced, stamp, status, createdAt, decidedAt, decidedStamp, reason, deliveredAt };
 }
 
 async function handleAdmin({ method, action, query = {}, body = {}, token, ip = '' }, { env = process.env, store, fetchImpl = globalThis.fetch, now = new Date() } = {}) {

@@ -8,7 +8,7 @@ async function placeOrder(request, name) {
   const r = await request.post('/api/order', {
     headers: { 'x-test-now': NOW },
     data: {
-      name, phone: '0888 111 222', email: 'test@example.com', notes: 'Корпус 2, етаж 3', consent: true, aec: true,
+      name, phone: '0888 111 222', email: 'test@example.com', address: 'Корпус 2, етаж 3', notes: 'По-лют сос', consent: true, aec: true,
       items: [{ id: 'duner-large', size: 0, qty: 2, opts: { sauces: ['люто'] } }, { id: 'drink-ayran', size: 0, qty: 1 }],
     },
   });
@@ -52,7 +52,8 @@ test('панел: приемам → доставена; клиентът и с�
   await expect(card).toBeVisible();
   await expect(card.locator('.badge')).toHaveText('Чака');
   await expect(card).toContainText(name);
-  await expect(card).toContainText('Корпус 2, етаж 3');
+  await expect(card.locator('.ord__addr')).toHaveText('📍 Корпус 2, етаж 3');
+  await expect(card.locator('.ord__notes')).toHaveText('По-лют сос');
   await expect(card).toContainText('сосове: люто');
   await expect(card.locator('.ord__total')).toContainText('11,50 €');
   await expect(card.locator('.ord__phone')).toHaveAttribute('href', 'tel:0888111222');
@@ -86,12 +87,13 @@ test('целият цикъл: клиентът поръчва от сайта �
   await page.fill('#f-name', name);
   await page.fill('#f-phone', '0888 123 456');
   await page.fill('#f-email', 'test@example.com');
+  await page.fill('#f-address', 'Корпус 5, лаборатория');
   await page.locator('[name="aec"]').check();
   await page.locator('[name="consent"]').check();
   await page.locator('[data-submit]').click();
   await expect(page.locator('[data-done]')).toContainText('Очаквай потвърждение');
+  await expect(page.locator('[data-done-id]')).toHaveText(/^DB-1210-0930-[0-9A-F]{4}$/);
   const id = (await page.locator('[data-done-id]').innerText()).trim();
-  expect(id).toMatch(/^DB-1210-0930-[0-9A-F]{4}$/);
 
   await login(page);
   const card = page.locator(`[data-order="${id}"]`);

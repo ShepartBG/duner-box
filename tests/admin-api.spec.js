@@ -7,7 +7,7 @@ const { memoryStore } = require('../api/store.js');
 const ENV = { RESEND_API_KEY: 're_test', RESEND_FROM: 'Duner Box <poruchki@dunerbox.bg>', ORDER_SECRET: 'test-secret', ADMIN_PASSWORD: 'тайна-123' };
 const OPEN = new Date('2026-10-12T09:15:00+03:00');
 const body = (name = 'Мария Иванова') => ({
-  name, phone: '0888 123 456', email: 'maria@example.com', notes: 'Корпус 3', consent: true, aec: true,
+  name, phone: '0888 123 456', email: 'maria@example.com', address: 'Корпус 3, отдел ТО', notes: 'Без лук', consent: true, aec: true,
   items: [{ id: 'duner-large', size: 0, qty: 1 }],
 });
 
@@ -80,7 +80,7 @@ test('показва поръчките само за избрания ден, �
   expect(r.status).toBe(200);
   expect(r.json.orders.map((o) => o.id)).toEqual([b.json.orderId, a.json.orderId]);
   const o = r.json.orders[0];
-  expect(o).toMatchObject({ name: 'Втори Клиент', status: 'pending', phone: '0888 123 456', notes: 'Корпус 3', total: 5 });
+  expect(o).toMatchObject({ name: 'Втори Клиент', status: 'pending', phone: '0888 123 456', address: 'Корпус 3, отдел ТО', notes: 'Без лук', total: 5 });
   expect(o.lines[0]).toMatchObject({ name: expect.stringContaining('Дюнер'), qty: 1 });
   expect((await s.call({ method: 'GET', action: 'orders', query: { day: 'вчера' }, token })).status).toBe(400);
 });

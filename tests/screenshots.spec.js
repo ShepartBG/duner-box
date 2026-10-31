@@ -49,6 +49,7 @@ test('screenshots: отворени поръчки с пълна количка'
   await page.fill('#f-name', 'Иван Петров');
   await page.fill('#f-phone', '0888 123 456');
   await page.fill('#f-email', 'ivan@example.com');
+  await page.fill('#f-address', 'Корпус 2, отдел ТО, ет. 3');
   await page.locator('[name="aec"]').check();
   await page.waitForTimeout(2200);
   const p = testInfo.project.name;
