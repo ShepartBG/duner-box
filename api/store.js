@@ -34,4 +34,9 @@ function fileStore(dir) {
   };
 }
 
-module.exports = { memoryStore, fileStore };
+// папка за локалните поръчки (server.js); тестовете ползват своя (ORDERS_DIR в playwright.config.js)
+function localOrdersDir() {
+  return process.env.ORDERS_DIR ? path.resolve(process.env.ORDERS_DIR) : path.join(__dirname, '..', '.data', 'orders');
+}
+
+module.exports = { memoryStore, fileStore, localOrdersDir };

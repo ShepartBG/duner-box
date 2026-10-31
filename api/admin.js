@@ -118,8 +118,8 @@ async function handleAdmin({ method, action, query = {}, body = {}, token, ip = 
 
 /* --- локален HTTP (server.js) --- */
 async function handler(req, res) {
-  const { fileStore } = require('./store.js');
-  const store = fileStore(require('path').join(__dirname, '..', '.data', 'orders'));
+  const { fileStore, localOrdersDir } = require('./store.js');
+  const store = fileStore(localOrdersDir());
   const url = new URL(req.url, 'http://x');
   let body = {};
   if (req.method === 'POST') {

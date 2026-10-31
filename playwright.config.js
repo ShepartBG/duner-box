@@ -2,6 +2,7 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests',
+  globalSetup: require.resolve('./tests/global-setup.js'),
   timeout: 30000,
   reporter: [['list']],
   use: {
@@ -19,8 +20,8 @@ module.exports = defineConfig({
   webServer: {
     command: 'node server.js',
     // RESEND_API_KEY празен: тестовете никога не пращат истински имейли, дори ако .env има ключ
-    env: { PORT: '5174', ALLOW_TEST_CLOCK: '1', RESEND_API_KEY: '', ORDER_SECRET: 'test-server-secret', ADMIN_PASSWORD: 'test-admin' },
+    env: { PORT: '5174', ALLOW_TEST_CLOCK: '1', RESEND_API_KEY: '', ORDER_SECRET: 'test-server-secret', ADMIN_PASSWORD: 'test-admin', ORDERS_DIR: '.data/test-orders' },
     url: 'http://localhost:5174',
-    reuseExistingServer: true,
+    reuseExistingServer: false,
   },
 });

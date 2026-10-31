@@ -310,8 +310,8 @@ async function handler(req, res) {
   if (env.ALLOW_TEST_CLOCK === '1' && req.headers['x-test-now']) now = new Date(req.headers['x-test-now']);
   const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
 
-  const { fileStore } = require('./store.js');
-  const store = fileStore(require('path').join(__dirname, '..', '.data', 'orders'));
+  const { fileStore, localOrdersDir } = require('./store.js');
+  const store = fileStore(localOrdersDir());
   const baseUrl = `http://${req.headers.host}`;
   const result = await handleOrder(body, { now, env, ip, store, baseUrl, recordedAt: new Date() });
   return send(res, result.status, result.json);
