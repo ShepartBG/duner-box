@@ -373,7 +373,7 @@
     if (soundOn) keepAwake();
   });
 
-  /* --- прозорецът за поръчки (8:00–10:00) --- */
+  /* --- прозорецът за поръчки (8:00–10:30) --- */
   function two(n) { return String(n).padStart(2, '0'); }
   const OPEN_AT = `${Math.floor(D.ORDER.start / 60)}:${two(D.ORDER.start % 60)}`;
   function hms(s) { return `${two(Math.floor(s / 3600))}:${two(Math.floor(s / 60) % 60)}:${two(s % 60)}`; }

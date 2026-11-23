@@ -94,7 +94,8 @@ async function adminRoute(request, env, url) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.hostname === 'www.dunerbox.bg') {
+    // www → dunerbox.bg и http → https (поръчките носят лични данни — само по защитена връзка)
+    if (url.hostname === 'www.dunerbox.bg' || (url.protocol === 'http:' && url.hostname === 'dunerbox.bg')) {
       return Response.redirect(`https://dunerbox.bg${url.pathname}${url.search}`, 301);
     }
     if (url.pathname === '/api/order') return orderRoute(request, env, url);

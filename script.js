@@ -425,7 +425,7 @@ function updateSubmit() {
   if (!btn) return;
   btn.disabled = sending || !windowState.open || cart.lines.length === 0;
   $('[data-closed-note]').textContent = !windowState.open
-    ? 'Бутонът се отключва от 8:00 до 10:00 (пон–пет).'
+    ? `Бутонът се отключва от ${fmtTime(ORDER.start)} до ${fmtTime(ORDER.end)} (пон–пет).`
     : cart.lines.length === 0 ? 'Добави поне едно нещо в количката.' : '';
 }
 
@@ -444,7 +444,7 @@ function validate(data) {
   const digits = data.phone.replace(/[^\d]/g, '');
   if (!/^[+\d\s()\-/]+$/.test(data.phone.trim()) || digits.length < 9 || digits.length > 15) errs.phone = 'Въведи валиден телефон.';
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email.trim())) errs.email = 'Въведи валиден имейл.';
-  if (data.address.trim().length < 3) errs.address = 'Напиши къде да доставим (сграда, отдел, етаж).';
+  if (!ORDER.portals.includes(data.address)) errs.address = `Избери къде да доставим: ${ORDER.portals.join(' или ')}.`;
   if (!data.aec) errs.aec = 'Потвърди, че доставката е в АЕЦ Козлодуй.';
   if (!data.consent) errs.consent = 'Нужно е съгласие за обработка на данните.';
   return errs;
@@ -454,6 +454,13 @@ function initForm() {
   const form = $('[data-order-form]');
   if (!form) return;
   const msg = $('[data-form-msg]');
+  // избран портал / отметка → грешката за това поле изчезва веднага
+  form.addEventListener('change', (e) => {
+    const err = e.target.name && $(`[data-err="${e.target.name}"]`);
+    if (!err || !err.textContent) return;
+    err.textContent = '';
+    $$(`[name="${e.target.name}"]`).forEach((el) => el.setAttribute('aria-invalid', 'false'));
+  });
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (sending) return;
@@ -546,12 +553,12 @@ function tickTimer() {
     if (w.open) {
       $('[data-timer-label]').textContent = 'Поръчай сега! Затваряме след';
       $('[data-timer-digits]').textContent = hms(w.secondsLeft);
-      $('[data-timer-sub]').textContent = 'Приемаме поръчки до 10:00';
+      $('[data-timer-sub]').textContent = `Приемаме поръчки до ${fmtTime(ORDER.end)}`;
     } else {
       $('[data-timer-label]').textContent = 'Поръчките отварят след';
       $('[data-timer-digits]').textContent = w.secondsToOpen == null ? '--:--:--' : hms(w.secondsToOpen);
       const when = w.inDays === 0 ? 'днес' : w.inDays === 1 ? 'утре' : `в ${DAY_NAMES[w.nextDay]}`;
-      $('[data-timer-sub]').textContent = `${when} в 8:00`;
+      $('[data-timer-sub]').textContent = `${when} в ${fmtTime(ORDER.start)}`;
     }
   }
   const mini = $('[data-mini-timer]');

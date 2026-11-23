@@ -24,6 +24,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const fmt = (n) => `${n.toFixed(2).replace('.', ',')} €`;
 // в HTML имейлите: сумата и „€“ никога на отделни редове (и в пощи, които не четат CSS)
 const money = (n) => fmt(n).replace(' ', '&nbsp;');
+const hm = (min) => `${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}`; // 630 → "10:30"
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 /* --- лимит на заявки (на инстанция) --- */
@@ -45,14 +46,14 @@ function buildOrder(body, now) {
   const name = String(body.name || '').trim().replace(/\s+/g, ' ');
   const phone = String(body.phone || '').trim();
   const email = String(body.email || '').trim().toLowerCase();
-  const address = String(body.address || '').trim().replace(/\s+/g, ' ');
+  const address = typeof body.address === 'string' ? body.address.trim() : '';
   const notes = String(body.notes || '').trim().slice(0, 600);
 
   if (name.length < 3 || name.length > 80) errors.name = 'Въведи имената си.';
   const digits = phone.replace(/[^\d]/g, '');
   if (!/^[+\d\s()\-/]+$/.test(phone) || digits.length < 9 || digits.length > 15) errors.phone = 'Въведи валиден телефон.';
   if (!EMAIL_RE.test(email) || email.length > 120) errors.email = 'Въведи валиден имейл.';
-  if (address.length < 3 || address.length > 150) errors.address = 'Напиши къде да доставим (сграда, отдел, етаж).';
+  if (!D.ORDER.portals.includes(address)) errors.address = `Избери къде да доставим: ${D.ORDER.portals.join(' или ')}.`;
   if (body.aec !== true) errors.aec = 'Доставяме само в АЕЦ Козлодуй — потвърди адреса.';
   if (body.consent !== true) errors.consent = 'Нужно е съгласие за обработка на данните.';
 
@@ -227,7 +228,7 @@ async function handleOrder(body, { now = new Date(), env = process.env, fetchImp
 
   const win = D.orderWindow(now);
   if (!win.open) {
-    return fail(403, 'closed', `Поръчки се приемат само от 8:00 до 10:00 (пон–пет).`, { secondsToOpen: win.secondsToOpen });
+    return fail(403, 'closed', `Поръчки се приемат само от ${hm(D.ORDER.start)} до ${hm(D.ORDER.end)} (пон–пет).`, { secondsToOpen: win.secondsToOpen });
   }
   // ограничение на заявките (изключено само за тестовия сървър с ALLOW_TEST_CLOCK)
   if (ip && env.ALLOW_TEST_CLOCK !== '1' && rateLimited(ip, now.getTime())) return fail(429, 'rate_limited', 'Твърде много опити. Опитай пак след малко.');

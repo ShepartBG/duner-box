@@ -5,11 +5,11 @@ const D = require('../menu-data.js');
 
 
 const OPEN = new Date('2026-10-12T09:15:00+03:00');   // понеделник 9:15
-const CLOSED = new Date('2026-10-12T10:00:00+03:00'); // понеделник 10:00 — вече затворено
+const CLOSED = new Date('2026-10-12T10:30:00+03:00'); // понеделник 10:30 — вече затворено
 const SAT = new Date('2026-10-17T09:30:00+03:00');    // събота 9:30
 
 const good = (over = {}) => ({
-  name: 'Мария Иванова', phone: '+359 888 123 456', email: 'maria@example.com', address: 'Корпус 3', notes: 'Без лук', consent: true, aec: true,
+  name: 'Мария Иванова', phone: '+359 888 123 456', email: 'maria@example.com', address: 'Портал ЕП-1', notes: 'Без лук', consent: true, aec: true,
   items: [
     { id: 'sand-tarikatski', size: 1, qty: 2, opts: { ingredients: ['зеле', 'домат'], sauces: ['чеснов'], extras: ['extra-kofte'] } },
     { id: 'side-fries', size: 0, qty: 1, opts: { sauces: ['кетчуп'] } },
@@ -55,7 +55,7 @@ test('имейл получава само клиентът (номер на п�
   expect(cust.html).toContain('2 × Тарикатски');
   expect(cust.html).toContain('с зеле, домат · сосове: чеснов · + телешко кюфте');
   expect(cust.html).toContain('черна череша');
-  expect(cust.html).toContain('Корпус 3');
+  expect(cust.html).toContain('Доставка до: <b>Портал ЕП-1</b>');
   expect(cust.html).toContain('22,50&nbsp;€'); // сумата и „€“ не се разделят на два реда
   expect(cust.html).toContain('white-space:nowrap" nowrap>22,50&nbsp;€</td>');
   expect(cust.html).toContain('АЕЦ Козлодуй');
@@ -72,7 +72,7 @@ test('цените се смятат на сървъра — подправен�
   expect(sent[0].body.html).toContain('8,00&nbsp;€');
 });
 
-test('отказва поръчки извън 8:00–10:00 и в събота', async () => {
+test('отказва поръчки извън 8:00–10:30 и в събота', async () => {
   for (const now of [CLOSED, SAT, new Date('2026-10-12T07:59:59+03:00')]) {
     const { sent, fetchImpl } = fakeResend();
     const r = await handleOrder(good(), { now, env: ENV, fetchImpl, ip: '1.1.1.3' });
@@ -248,6 +248,9 @@ test('Worker: тестовият часовник работи само с ALLOW
   const red = await w.fetch(new Request('https://www.dunerbox.bg/privacy.html?a=1'), workerEnv());
   expect(red.status).toBe(301);
   expect(red.headers.get('location')).toBe('https://dunerbox.bg/privacy.html?a=1');
+  const plain = await w.fetch(new Request('http://dunerbox.bg/admin?x=2'), workerEnv());
+  expect(plain.status).toBe(301);
+  expect(plain.headers.get('location')).toBe('https://dunerbox.bg/admin?x=2');
   expect(await (await w.fetch(new Request('https://dunerbox.bg/'), workerEnv())).text()).toBe('static');
 });
 
@@ -278,14 +281,28 @@ test('поръчка без потвърждение за АЕЦ се отказ
   expect(sent).toHaveLength(0);
 });
 
-test('поръчка без „Къде да доставим“ се отказва', async () => {
+test('„Къде да доставим“: само Портал ЕП-1 или Портал ЕП-2', async () => {
   const { sent, fetchImpl } = fakeResend();
-  for (const address of ['', '  ', 'x', 'а'.repeat(151)]) {
+  for (const address of [undefined, '', 'Корпус 2, отдел ТО', 'портал еп-1', 'Портал ЕП-3', ['Портал ЕП-1']]) {
     const r = await handleOrder(good({ address }), { now: OPEN, env: ENV, fetchImpl, ip: '7.7.7.9' });
-    expect(r.status).toBe(422);
-    expect(r.json.fields.address).toContain('къде да доставим');
+    expect(r.status, String(address)).toBe(422);
+    expect(r.json.fields.address).toBe('Избери къде да доставим: Портал ЕП-1 или Портал ЕП-2.');
   }
   expect(sent).toHaveLength(0);
+  for (const address of ['Портал ЕП-1', 'Портал ЕП-2']) {
+    const r = await handleOrder(good({ address }), { now: OPEN, env: ENV, fetchImpl, ip: '7.7.7.10' });
+    expect(r.status).toBe(200);
+    expect(sent.at(-1).body.html).toContain(`Доставка до: <b>${address}</b>`);
+  }
+});
+
+test('поръчки до 10:30: в 10:29 се приемат, в 10:30 — не', async () => {
+  const { fetchImpl } = fakeResend();
+  const at = (t) => handleOrder(good(), { now: new Date(`2026-10-12T${t}+03:00`), env: ENV, fetchImpl, ip: '7.7.7.11' });
+  expect((await at('10:29:59')).status).toBe(200);
+  const closed = await at('10:30:00');
+  expect(closed.status).toBe(403);
+  expect(closed.json.message).toBe('Поръчки се приемат само от 8:00 до 10:30 (пон–пет).');
 });
 
 test('сглобяването за Cloudflare добавя ?v= към снимките (за да не остават стари в кеша)', async () => {

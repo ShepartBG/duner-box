@@ -8,7 +8,7 @@ async function placeOrder(request, name) {
   const r = await request.post('/api/order', {
     headers: { 'x-test-now': NOW },
     data: {
-      name, phone: '0888 111 222', email: 'test@example.com', address: 'Корпус 2, етаж 3', notes: 'По-лют сос', consent: true, aec: true,
+      name, phone: '0888 111 222', email: 'test@example.com', address: 'Портал ЕП-2', notes: 'По-лют сос', consent: true, aec: true,
       items: [{ id: 'duner-large', size: 0, qty: 2, opts: { sauces: ['люто'] } }, { id: 'drink-ayran', size: 0, qty: 1 }],
     },
   });
@@ -41,7 +41,7 @@ test('панел: вход с парола, грешната парола не �
   await page.reload();
   await expect(page.locator('[data-app]')).toBeVisible();
   await expect(page.locator('[data-win]')).toHaveClass(/is-open/);
-  await expect(page.locator('[data-win-text]')).toContainText('Поръчките са отворени · още 00:30:00');
+  await expect(page.locator('[data-win-text]')).toContainText('Поръчките са отворени · още 01:00:00');
 });
 
 test('панел: приемам → доставена; клиентът и сумата се виждат', async ({ page, request }) => {
@@ -52,7 +52,7 @@ test('панел: приемам → доставена; клиентът и с�
   await expect(card).toBeVisible();
   await expect(card.locator('.badge')).toHaveText('Чака');
   await expect(card).toContainText(name);
-  await expect(card.locator('.ord__addr')).toHaveText('📍 Корпус 2, етаж 3');
+  await expect(card.locator('.ord__addr')).toHaveText('📍 Портал ЕП-2');
   await expect(card.locator('.ord__notes')).toHaveText('По-лют сос');
   await expect(card).toContainText('сосове: люто');
   await expect(card.locator('.ord__total')).toContainText('11,50 €');
@@ -87,7 +87,7 @@ test('целият цикъл: клиентът поръчва от сайта �
   await page.fill('#f-name', name);
   await page.fill('#f-phone', '0888 123 456');
   await page.fill('#f-email', 'test@example.com');
-  await page.fill('#f-address', 'Корпус 5, лаборатория');
+  await page.locator('[name="address"][value="Портал ЕП-1"]').check();
   await page.locator('[name="aec"]').check();
   await page.locator('[name="consent"]').check();
   await page.locator('[data-submit]').click();
